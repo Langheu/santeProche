@@ -4,6 +4,7 @@ import { SITE } from '../site.js';
 
 const ITEMS = [
   { label: 'ACCUEIL', to: '/', end: true },
+  { label: 'ASSISTANT', to: '/assistant' },
   { label: 'MEDICAMENTS', to: '/medicaments' },
   { label: 'CLINIQUES', to: '/cliniques' },
   { label: 'PHARMACIES', to: '/pharmacies' },

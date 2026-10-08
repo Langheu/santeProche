@@ -7,8 +7,10 @@ import { resolve, join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PHARMACY_LIST, CLINIC_LIST, MEDICINE_LIST } from '../src/data/demo.js';
 import { DAYS, slugify, openingStatus, withDistance, paginate, searchItems } from './catalog.js';
+import { aiConfigured, interpret, validateIntent, searchCatalog } from './assistant.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+if (process.env.NODE_ENV !== 'test' && existsSync(join(root, '.env'))) process.loadEnvFile(join(root, '.env'));
 const storage = resolve(process.env.DATA_DIR || join(root, 'server', 'storage'));
 mkdirSync(join(storage, 'uploads'), { recursive: true });
 mkdirSync(join(storage, 'prescriptions'), { recursive: true });
@@ -31,6 +33,8 @@ const administrator = () => db.prepare('SELECT * FROM admins WHERE id=1').get();
 const hashToken = token => createHash('sha256').update(token).digest('hex');
 const deriveKey = promisify(scrypt);
 const loginAttempts = new Map();
+const assistantAttempts = new Map();
+let aiDay = { day: '', count: 0, active: 0 };
 const MAX_BODY = 16 * 1024 * 1024;
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -176,6 +180,38 @@ export const server = createServer(async (req, res) => {
     if (method === 'OPTIONS') { res.writeHead(204, { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE', 'Access-Control-Allow-Headers': 'Content-Type' }); res.end(); return; }
 
     if (path === '/api/health') return json(res, 200, { status: 'ok' });
+    if (path === '/api/assistant/status' && method === 'GET') return json(res, 200, { configured: aiConfigured() });
+    if (path === '/api/assistant/search' && method === 'POST') {
+      const input = await body(req);
+      const message = text(input.message, 1500);
+      if (!message && !input.image && !input.intent) fail(400, 'Saisissez votre recherche.');
+      const location = { lat: numeric(input.lat, -90, 90, 'Latitude', true), lng: numeric(input.lng, -180, 180, 'Longitude', true) };
+      if ((location.lat == null) !== (location.lng == null)) fail(400, 'Position incomplète.');
+      const key = req.socket.remoteAddress; const now = Date.now();
+      if (assistantAttempts.size > 1000) for (const [ip, attempt] of assistantAttempts) if (attempt.until < now) assistantAttempts.delete(ip);
+      const attempt = assistantAttempts.get(key)?.until > now ? assistantAttempts.get(key) : { until: now + 60 * 60 * 1000, ai: 0, all: 0 };
+      if (++attempt.all > 150) fail(429, 'Trop de recherches. Réessayez plus tard.');
+      assistantAttempts.set(key, attempt);
+      let parsed;
+      if (input.intent) parsed = { intent: validateIntent(input.intent), mode: 'confirmed', confirmation: false };
+      else {
+        const useAI = aiConfigured();
+        if (useAI) {
+          const day = new Date().toISOString().slice(0, 10);
+          if (aiDay.day !== day) aiDay = { day, count: 0, active: aiDay.active };
+          const configuredLimit = Number(process.env.AI_DAILY_LIMIT ?? 200);
+          const dailyLimit = Number.isFinite(configuredLimit) ? Math.max(0, configuredLimit) : 200;
+          if (attempt.ai >= 30 || aiDay.count >= dailyLimit || aiDay.active >= 4) fail(429, 'La limite d’analyses IA est atteinte. Utilisez la recherche classique ou réessayez plus tard.');
+          attempt.ai++; aiDay.count++; aiDay.active++;
+        }
+        try { parsed = await interpret({ ...input, message, previous: input.previous ? validateIntent(input.previous) : null }); }
+        finally { if (useAI) aiDay.active--; }
+      }
+      if (input.city != null) parsed.intent.city = text(input.city, 150);
+      if (parsed.confirmation) return json(res, 200, { ...parsed, results: [], total: 0, message: 'Vérifiez le nom, le dosage et la présentation avant de rechercher.' });
+      const catalog = { pharmacies: list('pharmacies'), cliniques: list('cliniques'), medicaments: list('medicaments').map(hydrateMedicine).filter(Boolean) };
+      return json(res, 200, { ...parsed, ...searchCatalog(parsed.intent, catalog, location) });
+    }
     if (path === '/api/auth/status' && method === 'GET') return json(res, 200, { setupRequired: !administrator(), authenticated: Boolean(authorized(req)) });
     if (path === '/api/auth/setup' && method === 'POST') {
       if (administrator()) fail(409, 'Un administrateur existe déjà.');

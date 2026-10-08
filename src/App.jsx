@@ -22,9 +22,11 @@ import ConditionUtilisation from './pages/ConditionUtilisation.jsx';
 import Politique from './pages/Politique.jsx';
 import Placeholder from './pages/Placeholder.jsx';
 import Admin from './pages/Admin.jsx';
+import Assistant from './pages/Assistant.jsx';
 
 // Titres des onglets (les fiches détail définissent le leur)
 const TITLES = {
+  '/assistant': 'Assistant de recherche',
   '/admin': 'Administration',
   '/': 'Accueil',
   '/medicaments': 'Liste des médicaments',
@@ -59,6 +61,7 @@ export default function App() {
     <Routes>
       <Route path="/admin" element={<Admin />} />
       <Route element={<Layout />}>
+        <Route path="/assistant" element={<Assistant />} />
         <Route path="/" element={<Home />} />
         <Route path="/medicaments" element={<Medicaments />} />
         <Route path="/medicament/:slug" element={<ShowMedicament />} />

@@ -45,3 +45,15 @@ Les tests utilisent une base temporaire distincte des données du projet.
 ## Profil administrateur
 
 Le bouton « Mon profil » dans l’en-tête permet de modifier le nom, la photo, le téléphone personnel et l’email de connexion. Le téléphone du profil ne change pas le contact public du site. Pour changer l’email ou le mot de passe, le mot de passe actuel est demandé. Le nouveau mot de passe doit contenir au moins 12 caractères. Son changement déconnecte les autres sessions et conserve la session de cet appareil. Les comptes existants reçoivent les nouveaux champs sans remplacement de leurs identifiants.
+
+## Assistant de recherche, photo et voix
+
+La page `/assistant`, accessible depuis le menu et les médicaments, affiche une conversation et des résultats issus du catalogue local. Le micro permet de dicter une demande (vérifier la transcription avant envoi) et une case permet de lire les réponses à voix haute. La dictée dépend de la prise en charge de SpeechRecognition, des permissions du micro et du service de reconnaissance du navigateur. La lecture utilise speechSynthesis. Le navigateur peut transmettre la voix à son service de reconnaissance ; le backend ne reçoit que le texte envoyé. Le clavier reste disponible.
+
+Sans clé IA, la page indique explicitement « Mode recherche classique » et recherche les mots saisis dans les fiches. Aucune reconnaissance photo n’est simulée. Pour activer l’IA, copiez `.env.example` dans `.env`, configurez `OPENAI_API_KEY` uniquement côté serveur et redémarrez `npm run dev`. Ne mettez jamais cette clé dans une variable VITE ou dans GitHub. Le modèle par défaut est `gpt-4.1-mini`, modifiable avec `OPENAI_MODEL`. Les analyses nécessitent un compte API actif et peuvent être facturées par le fournisseur.
+
+Le backend utilise l’API Responses d’OpenAI avec une sortie structurée pour extraire le type de recherche, le nom, le dosage, la ville et le filtre d’ouverture. L’IA ne produit pas les prix ni les pharmacies : les résultats sont recherchés dans SQLite. Les photos JPG/PNG/WEBP de moins de 10 Mo sont envoyées à OpenAI uniquement après consentement et ne sont pas enregistrées par cette fonctionnalité. Les requêtes utilisent `store: false`. Le produit reconnu est montré dans des champs modifiables et doit être confirmé avant toute recherche. Les règles de conservation du fournisseur restent applicables.
+
+La position est demandée uniquement en cliquant « Utiliser ma position ». Les distances sont calculées à vol d’oiseau. En cas de refus, il est possible de filtrer par ville ou quartier. L’IA n’offre ni diagnostic ni posologie. Limites initiales : 30 appels IA par IP et par heure, 4 simultanés et 200 par jour pour le serveur (`AI_DAILY_LIMIT`). Les compteurs sont en mémoire et se réinitialisent au redémarrage ; prévoir une limitation durable et un budget fournisseur pour un déploiement public.
+
+Documentation : https://developers.openai.com/api/docs/guides/structured-outputs et https://developers.openai.com/api/docs/guides/images-vision.

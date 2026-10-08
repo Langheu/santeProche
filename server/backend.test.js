@@ -9,6 +9,8 @@ test('Administration, catalogue, images privées et persistance', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'santeproche-test-'));
   process.env.DATA_DIR = directory;
   process.env.SEED_DEMO = 'false';
+  process.env.NODE_ENV = 'test';
+  delete process.env.OPENAI_API_KEY;
   const { server, db } = await import('./index.js');
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
@@ -37,6 +39,13 @@ test('Administration, catalogue, images privées et persistance', async () => {
     assert.equal(offer.currency, 'XAF');
     assert.equal(offer.distance, null);
     assert.equal(offer.statusText, 'Horaires non renseignés');
+    assert.deepEqual(await (await api('/assistant/status')).json(), { configured: false });
+    const assistant = await (await api('/assistant/search', 'POST', { message: 'Je cherche Produit de test', lat: 0, lng: 0 })).json();
+    assert.equal(assistant.mode, 'classic');
+    assert.equal(assistant.results.length, 1);
+    assert.equal(assistant.results[0].telephone, '+235 61111111');
+    assert.equal((await api('/assistant/search', 'POST', { message: 'test', lat: 91, lng: 0 })).status, 400);
+    assert.equal((await api('/assistant/search', 'POST', { image: { data: 'test' } })).status, 503);
     assert.equal((await api('/admin/pharmacies/' + pharmacy.id, 'DELETE')).status, 409);
     const clinic = await (await api('/admin/cliniques', 'POST', { nom: 'Clinique de test', ville: 'Ville B', telephone: '+235 62222222' })).json();
     assert.ok(clinic.id);

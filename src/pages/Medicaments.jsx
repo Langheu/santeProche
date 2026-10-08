@@ -121,6 +121,7 @@ export default function Medicaments() {
         />
         <section className="py-5 medicine-results">
           <div className="container">
+            <p><Link className="btn btn-outline-success" style={{ whiteSpace: 'normal' }} to="/assistant"><i className="bi bi-stars me-2" aria-hidden="true"></i>Rechercher avec l’assistant · Photo ou voix</Link></p>
             {error && <p className="alert alert-danger" role="alert">{error}</p>}
             {data?.data.some(item => item.is_demo) && <p className="medicine-demo-note">Certaines fiches sont des démonstrations : images illustratives et données fictives.</p>}
             <div className="row g-4">

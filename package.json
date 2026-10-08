@@ -9,7 +9,7 @@
     "dev:frontend": "vite",
     "backend": "node server/index.js",
     "start": "node server/index.js",
-    "test": "node --test server/backend.test.js",
+    "test": "node --test server/*.test.js",
     "build": "vite build",
     "preview": "vite preview"
   },

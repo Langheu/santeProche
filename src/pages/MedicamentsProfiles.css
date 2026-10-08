@@ -1,0 +1,261 @@
+.page-medicaments {
+  background: #f8faf8;
+  color: #26392c;
+}
+
+.page-medicaments main > section.bg-success {
+  background: green !important;
+  padding: 36px 0;
+}
+
+.page-medicaments main > section.bg-success h3 {
+  margin: 0 0 12px;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.page-medicaments .hero__subtitle {
+  max-width: 650px;
+  margin: 0 auto 24px;
+  color: #e3f1e3;
+  font-size: 12px;
+  letter-spacing: 0;
+  opacity: 1;
+}
+
+.page-medicaments .search-box {
+  flex-wrap: nowrap;
+  border-radius: 24px;
+  max-width: 580px;
+  padding: 7px 7px 7px 18px;
+  box-shadow: none;
+}
+
+.page-medicaments .search-input {
+  min-width: 0;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+.page-medicaments .search-btn {
+  width: auto;
+  border-radius: 18px;
+  min-height: 44px;
+  padding: 11px 18px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.page-medicaments .medicine-results {
+  background: #f8faf8;
+  padding-top: 30px !important;
+}
+
+.page-medicaments .medicine-demo-note {
+  margin: 0 0 20px;
+  color: #68736b;
+  font-size: 11px;
+}
+
+.page-medicaments .medicine-card {
+  overflow: hidden;
+  border: 1px solid #e1e9e3;
+  border-radius: 22px;
+  padding: 26px;
+  box-shadow: 0 5px 18px #16391c08;
+}
+
+.page-medicaments .medicine-card:hover {
+  transform: none;
+  box-shadow: 0 5px 18px #16391c08;
+}
+
+.page-medicaments .medicine-image-wrap {
+  margin: -26px -26px 22px;
+  background: #fff;
+}
+
+.page-medicaments .medicine-product-image {
+  display: block;
+  width: 100%;
+  height: 210px;
+  object-fit: contain;
+}
+
+.page-medicaments .medicine-image-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 210px;
+  background: #f6faf6;
+  color: #68736b;
+  font-size: 12px;
+}
+
+.page-medicaments .medicine-image-missing .bi {
+  font-size: 34px;
+  color: #78947e;
+}
+
+.page-medicaments .medicine-top {
+  margin-bottom: 20px;
+}
+
+.page-medicaments .medicine-heading h5 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.page-medicaments .medicine-heading h5 a {
+  color: #26392c;
+}
+
+.page-medicaments .medicine-pharmacy-profile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #246b35;
+  text-decoration: none;
+}
+
+.page-medicaments .medicine-pharmacy-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border: 1px solid #d5e3d8;
+  border-radius: 50%;
+  background: #f0f7f1;
+  color: #246b35;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.page-medicaments .medicine-eyebrow {
+  color: #246b35;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.page-medicaments .medicine-profile-label {
+  display: block;
+  margin-top: 3px;
+  color: #68736b;
+  font-size: 11px;
+}
+
+.page-medicaments .medicine-body {
+  gap: 17px;
+}
+
+.page-medicaments .medicine-address,
+.page-medicaments .medicine-distance,
+.page-medicaments .medicine-phone {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #68736b;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.page-medicaments .medicine-address .bi,
+.page-medicaments .medicine-distance .bi,
+.page-medicaments .medicine-phone .bi {
+  width: 16px;
+  flex: 0 0 16px;
+  margin: 2px 0 0;
+  color: #78947e;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.page-medicaments .medicine-phone {
+  color: #246b35;
+  font-weight: 500;
+}
+
+.page-medicaments .medicine-actions {
+  align-items: stretch;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.page-medicaments .price-btn {
+  justify-content: flex-start;
+  height: auto;
+  min-height: 46px;
+  padding: 12px 0;
+  background: transparent;
+  color: #246b35;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.page-medicaments .itineraire-btn {
+  min-height: 46px;
+  padding: 11px 10px;
+  border: 1px solid #246b35;
+  border-radius: 12px;
+  background: #246b35;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 8px;
+}
+
+.page-medicaments .itineraire-btn:hover {
+  background: #185326;
+  border-color: #185326;
+  color: #fff;
+}
+
+.page-medicaments .itineraire-btn:focus-visible,
+.page-medicaments .medicine-pharmacy-profile:focus-visible {
+  outline: 2px solid #246b35;
+  outline-offset: 3px;
+}
+
+.page-medicaments .medicine-image-skeleton {
+  height: 210px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 575px) {
+  .page-medicaments .search-box {
+    flex-wrap: wrap;
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .page-medicaments .search-input {
+    font-size: 16px;
+  }
+
+  .page-medicaments .search-btn {
+    width: 100%;
+    border-radius: 12px;
+  }
+
+  .page-medicaments .medicine-card {
+    padding: 22px;
+  }
+
+  .page-medicaments .medicine-image-wrap {
+    margin: -22px -22px 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-medicaments .medicine-card,
+  .page-medicaments .itineraire-btn {
+    transition: none;
+  }
+}

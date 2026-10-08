@@ -1,0 +1,58 @@
+/* Icônes et bouton discrets, dans la disposition existante des cliniques. */
+.page-cliniques .card-address > .bi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  flex: 0 0 15px;
+  margin-top: 3px;
+  color: #78947e;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.page-cliniques .card-subtext > .bi {
+  margin-right: 4px;
+  color: #78947e;
+  font-size: 12px;
+  vertical-align: baseline;
+}
+
+.page-cliniques .pharma-card .btn {
+  min-height: 44px;
+  height: auto;
+  padding: 10px 14px;
+  border-color: #d5e3d8 !important;
+  background: #fff !important;
+  color: #246b35 !important;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.page-cliniques .pharma-card .btn > .bi {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.page-cliniques .pharma-card .btn:hover {
+  background: #f3f9f4 !important;
+  border-color: #a6c7ae !important;
+  color: #185326 !important;
+}
+
+.page-cliniques .pharma-card .btn:hover > .bi {
+  transform: none;
+}
+
+.page-cliniques .pharma-card .btn:focus-visible {
+  outline: 2px solid #246b35;
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-cliniques .pharma-card .btn {
+    transition: none;
+  }
+}

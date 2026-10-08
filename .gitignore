@@ -1,0 +1,10 @@
+node_modules
+dist
+clone-compile
+server/storage
+.env
+.env.local
+.env.*
+!.env.example
+.claude/
+*.log

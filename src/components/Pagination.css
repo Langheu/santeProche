@@ -1,0 +1,4 @@
+@media (max-width: 600px) {
+  .pagination-bar { flex-wrap: wrap; max-width: 100%; }
+  .pagination-numbers { order: 3; flex: 0 1 100%; max-width: 100%; flex-wrap: wrap; justify-content: center; }
+}

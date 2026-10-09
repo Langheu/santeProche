@@ -1,4 +1,5 @@
 import { displayedPages } from '../hooks/usePaginatedList.js';
+import './Pagination.css';
 
 export default function Pagination({ data, onChange }) {
   if (!data || data.last_page <= 1) return null;

@@ -1,6 +1,7 @@
 import { build } from 'vite';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { buildPwa } from './pwa-build.js';
 process.env.VITE_GITHUB_PAGES = 'true';
 const base = '/santeProche/';
 await build({ base, build: { outDir: 'dist-pages' } });
@@ -16,3 +17,4 @@ function patch(directory) {
 }
 patch('dist-pages');
 writeFileSync('dist-pages/.nojekyll', '');
+buildPwa('dist-pages', base);

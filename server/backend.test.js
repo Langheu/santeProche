@@ -70,6 +70,7 @@ test('Administration, catalogue, images privées et persistance', async () => {
     const imagePath = `/admin/prescriptions/${prescription.id}/image`;
     assert.equal((await api(imagePath, 'GET', undefined, false)).status, 401);
     assert.equal((await api(imagePath)).status, 200);
+    assert.equal((await api(imagePath)).headers.get('cache-control'), 'no-store');
     assert.equal((await (await api('/admin/requests')).json()).length, 2);
     assert.equal((await (await api('/stats')).json()).pharmacies, 1);
     const secondDB = db.kind === 'sqlite' ? new DatabaseSync(join(directory, 'santeproche.sqlite')) : null;

@@ -138,9 +138,9 @@ function saveImage(input, directory) {
   writeFileSync(join(storage, directory, filename), buffer, { flag: 'wx' });
   return filename;
 }
-function serveFile(res, filename, type) {
+function serveFile(res, filename, type, cacheControl = 'no-store') {
   if (!existsSync(filename)) fail(404, 'Fichier introuvable.');
-  res.writeHead(200, { 'Content-Type': type, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'private, max-age=3600' }); res.end(readFileSync(filename));
+  res.writeHead(200, { 'Content-Type': type, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': cacheControl }); res.end(readFileSync(filename));
 }
 export const server = createServer(async (req, res) => {
   try {
@@ -299,8 +299,8 @@ export const server = createServer(async (req, res) => {
         if (!requested.startsWith(dist + '\\')) fail(403, 'Chemin invalide.');
       }
       const file = extname(requested) ? requested : join(dist, 'index.html');
-      const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ico': 'image/x-icon' };
-      return serveFile(res, file, types[extname(file)] || 'application/octet-stream');
+      const types = { '.webmanifest': 'application/manifest+json', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ico': 'image/x-icon' };
+      return serveFile(res, file, types[extname(file)] || 'application/octet-stream', 'no-cache');
     }
     fail(404, 'Route introuvable.');
   } catch (error) {

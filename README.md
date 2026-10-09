@@ -75,6 +75,16 @@ Les tests utilisent une base temporaire distincte des données du projet.
 
 `npm run build:pages` prépare `dist-pages` pour https://langheu.github.io/santeProche/. Cette publication utilise une navigation compatible avec GitHub Pages et un catalogue fictif en lecture seule. La recherche classique et les images publiques fonctionnent sans serveur. L’administration, les envois de formulaires et l’analyse IA des photos nécessitent le backend ; la démonstration ne simule pas leur succès. La compilation habituelle `npm run build` conserve la connexion au backend du projet.
 
+## Application mobile installable (PWA)
+
+Le bouton « Installer SantéProche », avant le pied de page, utilise l’invite d’installation quand le navigateur la propose. Sinon il affiche les instructions. Sur iPhone/iPad, utiliser Safari → Partager → Sur l’écran d’accueil → Ajouter. L’application utilise le logo du projet et s’ouvre en mode autonome. Aucune APK n’est produite par cette installation.
+
+Les deux commandes de compilation produisent un manifeste et un service worker adaptés à leur adresse (racine pour le backend, `/santeProche/` pour GitHub). Tester une version compilée, servie en HTTPS ou sur localhost : le service worker est désactivé dans le serveur de développement pour éviter de figer les fichiers pendant les modifications. Sur un téléphone, le lien GitHub HTTPS permet l’installation de la démonstration ; localhost désigne le téléphone lui-même.
+
+Après une première ouverture connectée, les fichiers essentiels de l’application peuvent s’ouvrir sans Internet. Un message indique la perte de connexion. Les données API, images des ordonnances et réponses de l’administration ne sont jamais mises en cache par le service worker. Les stocks réels, la localisation distante, les formulaires et l’IA nécessitent leurs services en ligne ; aucun envoi différé n’est simulé. Les photos publiques non précachées peuvent manquer hors connexion. Le catalogue embarqué de GitHub reste explicitement fictif.
+
+Une nouvelle version est signalée avec « Mettre à jour » ; la page ne se recharge qu’après cette action, pour préserver les saisies en cours. L’installation physique dépend du navigateur et de ses critères d’éligibilité.
+
 ## Profil administrateur
 
 Le bouton « Mon profil » dans l’en-tête permet de modifier le nom, la photo, le téléphone personnel et l’email de connexion. Le téléphone du profil ne change pas le contact public du site. Pour changer l’email ou le mot de passe, le mot de passe actuel est demandé. Le nouveau mot de passe doit contenir au moins 12 caractères. Son changement déconnecte les autres sessions et conserve la session de cet appareil. Les comptes existants reçoivent les nouveaux champs sans remplacement de leurs identifiants.

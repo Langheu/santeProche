@@ -15,7 +15,7 @@
     "start": "node server/index.js",
     "test": "node --test server/*.test.js",
     "test:postgres": "node scripts/test-postgres.js",
-    "build": "vite build",
+    "build": "node scripts/build.js",
     "build:pages": "node scripts/build-pages.js",
     "preview": "vite preview"
   },

@@ -70,12 +70,12 @@ export async function interpret(input, { fetchImpl = fetch } = {}) {
 }
 
 export function searchCatalog(intent, { pharmacies, cliniques, medicaments }, location = {}) {
-  const fields = intent.kind === 'medicaments' ? ['designation', 'forme', 'pharmacie'] : ['nom', 'description', 'adresse', 'ville'];
+  const fields = intent.kind === 'medicaments' ? ['designation', 'forme', 'pharmacie'] : ['nom', 'description', 'adresse', 'ville', 'quartier'];
   let items = intent.kind === 'unsupported' ? [] : intent.kind === 'medicaments' ? medicaments.filter(item => item.quantite > 0) : intent.kind === 'cliniques' ? cliniques : pharmacies;
   const terms = canonical(intent.query).split(' ').filter(Boolean);
   items = items.filter(item => {
     const haystack = canonical(fields.map(field => item[field] || '').join(' '));
-    return terms.every(term => haystack.split(' ').some(word => /^\d/.test(term) ? word === term || /^\d+$/.test(term) && word.match(/^\d+/)?.[0] === term : word.startsWith(term))) && (!intent.city || normalize([item.ville, item.adresse].join(' ')).includes(normalize(intent.city))) && (!intent.open_now || openingStatus(item).statusText === 'Ouvert') && (!intent.on_call || item.garde);
+    return terms.every(term => haystack.split(' ').some(word => /^\d/.test(term) ? word === term || /^\d+$/.test(term) && word.match(/^\d+/)?.[0] === term : word.startsWith(term))) && (!intent.city || normalize([item.ville, item.quartier, item.adresse].join(' ')).includes(normalize(intent.city))) && (!intent.open_now || openingStatus(item).statusText === 'Ouvert') && (!intent.on_call || item.garde);
   });
   const sorted = withDistance(items, location.lat, location.lng);
   const labels = { medicaments: 'offre(s) de médicament', pharmacies: 'pharmacie(s)', cliniques: 'clinique(s)' };

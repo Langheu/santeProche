@@ -1,10 +1,12 @@
 import { assetUrl } from '../data/api.js';
+import LocationFields from './LocationFields.jsx';
 export const PHARMACY_DAYS = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
 export function PharmacyFields({ value, onChange, onPhoto, disabled }) {
   const change = (key, next) => onChange({ ...value, [key]: next });
-  const fields = [['nom','Nom de la pharmacie','text',true],['telephone','Téléphone de la pharmacie','tel',true],['adresse','Adresse','text',true],['ville','Ville / quartier','text',true],['pays','Pays','text',true],['email','Email public de la pharmacie','email',false]];
+  const fields = [['nom','Nom de la pharmacie','text',true],['telephone','Téléphone de la pharmacie','tel',true],['adresse','Adresse','text',true],['email','Email public de la pharmacie','email',false]];
   return <fieldset disabled={disabled} className="partner-fields">
     {fields.map(([key,label,type,required]) => <label key={key}>{label}<input value={value[key] || ''} type={type} required={required} maxLength={200} onChange={event => change(key,event.target.value)} /></label>)}
+    <LocationFields value={value} onChange={onChange} disabled={disabled}/>
     <label className="partner-wide">Description<textarea value={value.description || ''} rows={3} maxLength={5000} onChange={event=>change('description',event.target.value)} /></label>
     <label className="partner-wide">Photo de la pharmacie (JPG, PNG ou WEBP · 4 Mo maximum)<input aria-label="Photo de la pharmacie" type="file" accept="image/jpeg,image/png,image/webp" onChange={event=>onPhoto(event.target.files[0] || null)} />{value.image && <img className="partner-preview" src={assetUrl(value.image)} alt="Photo actuelle de la pharmacie" />}</label>
     <details className="partner-wide"><summary>Position sur la carte</summary><p>Les deux coordonnées sont nécessaires pour calculer une distance. Vous pouvez les laisser vides.</p><div className="partner-fields"><label>Latitude<input type="number" min="-90" max="90" step="any" value={value.latitude ?? ''} onChange={e=>change('latitude',e.target.value)} /></label><label>Longitude<input type="number" min="-180" max="180" step="any" value={value.longitude ?? ''} onChange={e=>change('longitude',e.target.value)} /></label></div></details>

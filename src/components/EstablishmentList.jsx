@@ -35,7 +35,7 @@ function Card({ item, index, basePath, isClinic }) {
             <path d="M12 21C12 21 5 13.5 5 8.5a7 7 0 0 1 14 0C19 13.5 12 21 12 21Z"></path>
             <circle cx="12" cy="8.5" r="2.5"></circle>
           </svg>}{' '}
-          {item.adresse}
+          {[item.adresse,item.quartier].filter(Boolean).join(', ')}
         </p>
         <div className="card-footer">
           <span className="card-distance">

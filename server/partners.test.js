@@ -18,7 +18,7 @@ test('Pharmacies : inscription privée, validation, isolation des comptes et sus
   const base=`http://127.0.0.1:${server.address().port}/api`;
   const api=(path,method='GET',data,cookie='',headers={})=>fetch(base+path,{method,headers:{...(data?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{}),...headers},...(data?{body:JSON.stringify(data)}:{})});
   const image={data:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXZkAAAAASUVORK5CYII='};
-  const registration=name=>({email:`${name}@example.test`,password:'pharmacy-test-2026',confirm_password:'pharmacy-test-2026',responsable:`Responsable ${name}`,accept_review:true,profile:{nom:`Pharmacie ${name}`,telephone:'+23560000000',adresse:'Rue du test',ville:'Ville test',pays:'Pays test',latitude:0,longitude:0},document:image,photo:image});
+  const registration=name=>({email:`${name}@example.test`,password:'pharmacy-test-2026',confirm_password:'pharmacy-test-2026',responsable:`Responsable ${name}`,accept_review:true,profile:{nom:`Pharmacie ${name}`,telephone:'+23560000000',adresse:'Rue du test',ville:'Ville test',quartier:'Quartier test',pays:'Pays test',latitude:0,longitude:0},document:image,photo:image});
   const cookie=response=>response.headers.get('set-cookie').split(';')[0];
   try{
     assert.equal((await api('/partner/document')).status,401);
@@ -29,10 +29,21 @@ test('Pharmacies : inscription privée, validation, isolation des comptes et sus
     assert.equal((await api('/partner/document','GET',undefined,aCookie)).headers.get('cache-control'),'no-store');
     assert.equal((await api('/admin/partners','GET',undefined,aCookie)).status,401);
     const setup=await api('/auth/setup','POST',{email:'owner@example.test',password:'owner-password-2026'});const owner=cookie(setup);
+    assert.equal((await api('/admin/locations','POST',{pays:'Pays test',ville:'Ville test'},aCookie)).status,401);
+    const initialLocations=await(await api('/locations')).json();assert.ok(initialLocations.some(row=>row.ville==='Moundou'));
+    assert.ok(!initialLocations.some(row=>row.pays==='Pays test'));
+    const locationResponse=await api('/admin/locations','POST',{pays:'Pays test',ville:'Ville test',quartier:'Quartier test'},owner);assert.equal(locationResponse.status,201);const location=await locationResponse.json();
+    assert.equal((await api('/admin/locations','POST',location,owner)).status,409);
+    assert.equal((await api('/admin/locations','POST',{pays:'Pays test'},owner)).status,400);
+    assert.ok((await(await api('/locations')).json()).some(row=>row.quartier==='Quartier test'));
+    assert.equal((await api('/admin/locations/'+location.id,'DELETE',undefined,owner)).status,200);
+    assert.ok(!(await(await api('/locations')).json()).some(row=>row.quartier==='Quartier test'));
     assert.equal((await api(`/admin/partners/${a.id}/document`,'GET',undefined,owner)).status,200);
     const row=await db.prepare('SELECT document FROM partners WHERE id=?').get(a.id);
     assert.equal((await api('/uploads/'+row.document)).status,404);
     let approved=await api(`/admin/partners/${a.id}/review`,'PUT',{action:'approve'},owner);assert.equal(approved.status,200);const aProfile=(await approved.json()).profile;
+    assert.equal(aProfile.quartier,'Quartier test');
+    assert.ok((await(await api('/locations')).json()).some(row=>row.quartier==='Quartier test'));
     const aId=(await(await api('/partner/status','GET',undefined,aCookie)).json()).pharmacy_id;
     assert.equal((await api('/partner/upload','POST',{data:Buffer.alloc(4*1024*1024+1).toString('base64')},aCookie)).status,400);
     assert.equal((await api(`/admin/partners/${a.id}/review`,'PUT',{action:'approve'},owner)).status,409);

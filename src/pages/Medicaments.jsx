@@ -78,7 +78,7 @@ function MedicineCard({ item }) {
         <div className="medicine-body">
           <div className="medicine-address">
             <i className="bi bi-geo-alt" aria-hidden="true"></i>
-            <span>{item.adresse} — {item.ville}</span>
+            <span>{[item.adresse,item.quartier,item.ville].filter(Boolean).join(' — ')}</span>
           </div>
           <div className="medicine-distance">
             <i className="bi bi-person-walking" aria-hidden="true"></i> {item.distance ? `À ${item.distance} de vous` : 'Distance non disponible'}

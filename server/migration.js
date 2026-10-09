@@ -6,6 +6,7 @@ const tables = {
   admins: ['id', 'email', 'salt', 'hash', 'nom', 'telephone', 'image'],
   requests: ['id', 'kind', 'data', 'created'],
   partners: ['id', 'email', 'responsable', 'salt', 'hash', 'status', 'profile', 'document', 'pharmacy_id', 'reason', 'created', 'updated'],
+  locations: ['id', 'pays', 'ville', 'quartier'],
 };
 
 // The source is opened read-only. A failed import rolls back all target data.

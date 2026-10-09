@@ -82,10 +82,12 @@ async function initializeSchema(db) {
         token TEXT PRIMARY KEY, partner_id TEXT NOT NULL REFERENCES partners(id) ON DELETE CASCADE, expires BIGINT NOT NULL
       );
       CREATE INDEX IF NOT EXISTS partner_sessions_expires_idx ON partner_sessions(expires);
+      CREATE TABLE IF NOT EXISTS locations (id TEXT PRIMARY KEY, pays TEXT NOT NULL, ville TEXT NOT NULL, quartier TEXT NOT NULL DEFAULT '', UNIQUE(pays,ville,quartier));
     `);
     const columns = db.kind === 'sqlite' ? await db.prepare('PRAGMA table_info(admins)').all() : await db.prepare("SELECT column_name AS name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='admins'").all();
     for (const field of ['nom', 'telephone', 'image']) if (!columns.some(column => column.name === field)) await db.exec(`ALTER TABLE admins ADD COLUMN ${field} TEXT NOT NULL DEFAULT ''`);
     await db.prepare('INSERT INTO schema_migrations(version,applied) VALUES(?,?) ON CONFLICT(version) DO NOTHING').run(1, new Date().toISOString());
     await db.prepare('INSERT INTO schema_migrations(version,applied) VALUES(?,?) ON CONFLICT(version) DO NOTHING').run(2, new Date().toISOString());
+    await db.prepare('INSERT INTO schema_migrations(version,applied) VALUES(?,?) ON CONFLICT(version) DO NOTHING').run(3, new Date().toISOString());
   });
 }

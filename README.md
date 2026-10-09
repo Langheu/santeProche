@@ -110,3 +110,11 @@ Le backend utilise l’API Responses d’OpenAI avec une sortie structurée pour
 La position est demandée uniquement en cliquant « Utiliser ma position ». Les distances sont calculées à vol d’oiseau. En cas de refus, il est possible de filtrer par ville ou quartier. L’IA n’offre ni diagnostic ni posologie. Limites initiales : 30 appels IA par IP et par heure, 4 simultanés et 200 par jour pour le serveur (`AI_DAILY_LIMIT`). Les compteurs sont en mémoire et se réinitialisent au redémarrage ; prévoir une limitation durable et un budget fournisseur pour un déploiement public.
 
 Documentation : https://developers.openai.com/api/docs/guides/structured-outputs et https://developers.openai.com/api/docs/guides/images-vision.
+
+## Listes géographiques et visibilité des mots de passe
+
+Les formulaires pharmacie proposent Pays → Ville → Quartier, avec des choix lus depuis `GET /api/locations`. « Autre… » permet une saisie libre et les anciennes valeurs restent modifiables. Changer le pays efface la ville et le quartier ; changer la ville efface le quartier. Le quartier est optionnel et enregistré dans la fiche.
+
+L’onglet administrateur « Localisations » ajoute ou retire les choix de référence (`locations`, schéma version 3). Les fiches publiées non fictives complètent également la liste ; retirer un choix ne modifie pas ces fiches. Un premier répertoire partiel du Tchad est initialisé une seule fois, sans imposer de pays par défaut. Sources : https://www.beac.int/pays/tchad/ et https://www.dgi.td/docs/circulaire/circulaire2023.pdf. Les lieux et leur indicateur d’initialisation sont conservés par la migration PostgreSQL.
+
+Chaque champ de mot de passe possède un bouton œil indépendant : le mot de passe est masqué initialement, le bouton affiche ou masque la valeur sans soumettre le formulaire.

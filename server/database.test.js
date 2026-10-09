@@ -44,10 +44,14 @@ test('PostgreSQL : migration fidèle, refus d’écrasement et transactions ind�
     await source.prepare('INSERT INTO sessions(token,expires) VALUES(?,?)').run('old-session', Date.now() + 60000);
     await source.prepare('INSERT INTO requests(id,kind,data,created) VALUES(?,?,?,?)').run('request-id', 'prescription', JSON.stringify({ filename: 'private.png' }), new Date().toISOString());
     await source.prepare('INSERT INTO partners(id,email,responsable,salt,hash,status,profile,document,pharmacy_id,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run('partner-id', 'pharmacy@example.test', 'Responsable', 'salt', 'partner-hash', 'approved', JSON.stringify({ nom: 'Pharmacie à conserver' }), 'private-document.png', 'kept-id', '2026-01-01', '2026-01-01');
+    await source.prepare('INSERT INTO locations(id,pays,ville,quartier) VALUES(?,?,?,?)').run('location-id','Pays migré','Ville migrée','Quartier migré');
+    await source.prepare('INSERT INTO settings(key,value) VALUES(?,?)').run('locations_initialized','true');
     target = await openDatabase({ directory, url: url.href });
     assert.equal((await migrateSQLite(join(directory, 'santeproche.sqlite'), target, { checkOnly: true })).records, 1);
     assert.equal((await target.prepare('SELECT COUNT(*) AS count FROM records').get()).count, '0');
     await migrateSQLite(join(directory, 'santeproche.sqlite'), target);
+    assert.equal((await target.prepare('SELECT quartier FROM locations WHERE id=?').get('location-id')).quartier,'Quartier migré');
+    assert.equal((await target.prepare('SELECT value FROM settings WHERE key=?').get('locations_initialized')).value,'true');
     assert.equal((await target.prepare('SELECT hash FROM admins').get()).hash, 'original-hash');
     assert.equal((await target.prepare('SELECT id FROM records').get()).id, 'kept-id');
     assert.equal((await target.prepare('SELECT hash FROM partners').get()).hash, 'partner-hash');

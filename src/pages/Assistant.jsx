@@ -17,7 +17,7 @@ function ResultCard({ item, kind }) {
   const href = `${kind === 'cliniques' ? '/cliniques' : '/pharmacies'}/${medicine ? item.pharmacie_slug : item.slug}`;
   return <article className="assistant-result">
     <div className="assistant-result-image">{src && !failed ? <img src={assetUrl(src)} alt={name} loading="lazy" onError={() => setFailed(true)} /> : <Icon name={kind === 'cliniques' ? 'bi-hospital' : 'bi-shop'} />}</div>
-    <div className="assistant-result-copy"><h3><Link to={href}>{name}</Link></h3>{medicine && <p className="assistant-product-name">{item.designation}</p>}<p><Icon name="bi-geo-alt" />{[item.adresse, item.ville].filter(Boolean).join(', ') || 'Adresse non renseignée'}</p>
+    <div className="assistant-result-copy"><h3><Link to={href}>{name}</Link></h3>{medicine && <p className="assistant-product-name">{item.designation}</p>}<p><Icon name="bi-geo-alt" />{[item.adresse, item.quartier, item.ville].filter(Boolean).join(', ') || 'Adresse non renseignée'}</p>
       <div className="assistant-result-facts"><span><Icon name="bi-person-walking" />{item.distance ? `À ${item.distance}` : 'Distance non disponible'}</span><span className={medicine || item.statusText === 'Ouvert' ? 'assistant-stock' : ''}>{medicine ? 'En stock' : item.statusText}</span>{medicine && <strong>{item.currency ? `${Number(item.prix_public).toLocaleString('fr-FR')} ${item.currency}` : 'Prix à renseigner'}</strong>}</div>
       {item.is_demo && <small className="assistant-demo">Démonstration · Données fictives</small>}
       <PharmacyActions item={{ ...item, slug: medicine ? item.pharmacie_slug : item.slug }} basePath={kind === 'cliniques' ? '/cliniques' : '/pharmacies'} />

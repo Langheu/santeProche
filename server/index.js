@@ -8,6 +8,7 @@ import { openDatabase } from './database.js';
 import { createRepository } from './repository.js';
 import { ensureLocalPostgres } from './local-postgres.js';
 import { partnerRoutes } from './partners.js';
+import { initializeLocations, locationRoutes } from './locations.js';
 import { DAYS, slugify, openingStatus, withDistance, paginate, searchItems } from './catalog.js';
 import { aiConfigured, interpret, validateIntent, searchCatalog } from './assistant.js';
 
@@ -21,6 +22,7 @@ await ensureLocalPostgres(storage);
 const db = await openDatabase({ directory: storage });
 const { insert, list, find, administrator, recordRequest, initializeCatalog } = createRepository(db);
 await initializeCatalog();
+await initializeLocations(db);
 const hashToken = token => createHash('sha256').update(token).digest('hex');
 const deriveKey = promisify(scrypt);
 const loginAttempts = new Map();
@@ -99,7 +101,7 @@ async function validateRecord(kind, input, existing) {
     record.nom = text(input.nom, 200); if (!record.nom) fail(400, 'Le nom de l’établissement est obligatoire.');
     record.slug = existing?.slug || `${slugify(record.nom) || 'etablissement'}-${record.id.slice(0, 8)}`;
     record.type_etablissement = kind === 'cliniques' ? 'clinique' : 'pharmacie';
-    for (const key of ['adresse', 'ville', 'pays', 'description']) record[key] = text(input[key], key === 'description' ? 5000 : 500);
+    for (const key of ['adresse', 'ville', 'quartier', 'pays', 'description']) record[key] = text(input[key], key === 'description' ? 5000 : 500);
     record.telephone = text(input.telephone, 40);
     if (record.telephone && !/^(?:\+|00)?[\d\s().-]{7,40}$/.test(record.telephone)) fail(400, 'Téléphone invalide.');
     record.email = text(input.email, 200); if (record.email && !email(record.email)) fail(400, 'Email invalide.');
@@ -122,7 +124,7 @@ async function validateRecord(kind, input, existing) {
 }
 function hydrateMedicine(item, pharmacy) {
   if (!pharmacy) return null;
-  return { ...pharmacy, ...item, pharmacie: pharmacy.nom, pharmacie_slug: pharmacy.slug, pharmacie_image: pharmacy.image, telephone: pharmacy.telephone, adresse: pharmacy.adresse, ville: pharmacy.ville, latitude: pharmacy.latitude, longitude: pharmacy.longitude };
+  return { ...pharmacy, ...item, pharmacie: pharmacy.nom, pharmacie_slug: pharmacy.slug, pharmacie_image: pharmacy.image, telephone: pharmacy.telephone, adresse: pharmacy.adresse, ville: pharmacy.ville, quartier: pharmacy.quartier, latitude: pharmacy.latitude, longitude: pharmacy.longitude };
 }
 async function hydrateMedicines(items) {
   const pharmacies = new Map((await visibleList('pharmacies')).map(item => [item.id, item]));
@@ -145,6 +147,7 @@ function serveFile(res, filename, type, cacheControl = 'no-store') {
   res.writeHead(200, { 'Content-Type': type, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': cacheControl }); res.end(readFileSync(filename));
 }
 const handlePartners = partnerRoutes({ db, list, find, validateRecord, body, json, fail, requireAdmin, saveImage, serveFile, storage, production });
+const handleLocations = locationRoutes({ db, visibleList, body, json, fail, requireAdmin });
 async function visibleList(kind) {
   const items = await list(kind);
   if (kind === 'cliniques') return items;
@@ -163,6 +166,7 @@ export const server = createServer(async (req, res) => {
     if (method === 'OPTIONS') { res.writeHead(204, { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE', 'Access-Control-Allow-Headers': 'Content-Type' }); res.end(); return; }
 
     if (await handlePartners(req, res, path, method)) return;
+    if (await handleLocations(req, res, path, method)) return;
     if (path === '/api/health') return json(res, 200, { status: 'ok' });
     if (path === '/api/assistant/status' && method === 'GET') return json(res, 200, { configured: aiConfigured() });
     if (path === '/api/assistant/search' && method === 'POST') {
@@ -224,7 +228,7 @@ export const server = createServer(async (req, res) => {
     if (['/api/pharmacies', '/api/cliniques', '/api/pharmacies-garde', '/api/medicaments'].includes(path) && method === 'GET') {
       const kind = path.split('/').pop(); let items = kind === 'medicaments' ? await hydrateMedicines((await visibleList(kind)).filter(item => item.quantite > 0)) : await visibleList(kind === 'pharmacies-garde' ? 'pharmacies' : kind);
       if (kind === 'pharmacies-garde') items = items.filter(item => item.garde);
-      items = searchItems(items, url.searchParams.get('search'), kind === 'medicaments' ? ['designation', 'pharmacie'] : ['nom', 'adresse', 'ville', 'description']);
+      items = searchItems(items, url.searchParams.get('search'), kind === 'medicaments' ? ['designation', 'pharmacie'] : ['nom', 'adresse', 'ville', 'quartier', 'description']);
       return json(res, 200, paginate(withDistance(items, url.searchParams.get('lat'), url.searchParams.get('lng')), url.searchParams));
     }
     const detail = path.match(/^\/api\/(etablissements|medicaments)\/([^/]+)$/);

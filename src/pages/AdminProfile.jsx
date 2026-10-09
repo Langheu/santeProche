@@ -1,3 +1,4 @@
+import PasswordField from '../components/PasswordField.jsx';
 import { useEffect, useState } from 'react';
 import { request, write, fileData, assetUrl } from '../data/api.js';
 
@@ -54,16 +55,16 @@ export default function AdminProfile({ onBusyChange }) {
           <label className="admin-field">Nom complet<input name="nom" autoComplete="name" maxLength={200} value={profile.nom} onChange={e => change('nom', e.target.value)} /></label>
           <label className="admin-field">Email de connexion<input name="email" type="email" autoComplete="username" maxLength={200} required value={profile.email} onChange={e => change('email', e.target.value)} /></label>
           <label className="admin-field">Téléphone personnel<input name="telephone" type="tel" autoComplete="tel" maxLength={40} value={profile.telephone} onChange={e => change('telephone', e.target.value)} /></label>
-          {profile.email !== original.email && <label className="admin-field">Mot de passe actuel pour changer l’email<input type="password" autoComplete="current-password" maxLength={256} required value={emailPassword} onChange={e => setEmailPassword(e.target.value)} /></label>}
+          {profile.email !== original.email && <PasswordField className="admin-field" label="Mot de passe actuel pour changer l’email" autoComplete="current-password" maxLength={256} required value={emailPassword} onChange={e => setEmailPassword(e.target.value)} />}
           <div className="admin-form-actions"><button className="admin-primary" type="submit"><i className="bi bi-floppy" aria-hidden="true" />Enregistrer mon profil</button><button type="button" onClick={() => { setProfile({ ...original }); setEmailPassword(''); setError(''); setMessage(''); }}>Annuler</button></div>
         </fieldset>
       </form>
       <form className="admin-panel" onSubmit={savePassword}>
         <h2>Modifier mon mot de passe</h2><p className="admin-hint">Choisissez un mot de passe de 12 caractères minimum. Vous resterez connecté sur cet appareil.</p>
         <fieldset disabled={busy}>
-          <label className="admin-field">Mot de passe actuel<input type="password" autoComplete="current-password" maxLength={256} required value={password.current_password} onChange={e => setPassword(value => ({ ...value, current_password: e.target.value }))} /></label>
-          <label className="admin-field">Nouveau mot de passe<input type="password" autoComplete="new-password" minLength={12} maxLength={256} required value={password.new_password} onChange={e => setPassword(value => ({ ...value, new_password: e.target.value }))} /></label>
-          <label className="admin-field">Confirmer le nouveau mot de passe<input type="password" autoComplete="new-password" minLength={12} maxLength={256} required value={password.confirm_password} onChange={e => setPassword(value => ({ ...value, confirm_password: e.target.value }))} /></label>
+          <PasswordField className="admin-field" label="Mot de passe actuel" autoComplete="current-password" maxLength={256} required value={password.current_password} onChange={e => setPassword(value => ({ ...value, current_password: e.target.value }))} />
+          <PasswordField className="admin-field" label="Nouveau mot de passe" autoComplete="new-password" minLength={12} maxLength={256} required value={password.new_password} onChange={e => setPassword(value => ({ ...value, new_password: e.target.value }))} />
+          <PasswordField className="admin-field" label="Confirmer le nouveau mot de passe" autoComplete="new-password" minLength={12} maxLength={256} required value={password.confirm_password} onChange={e => setPassword(value => ({ ...value, confirm_password: e.target.value }))} />
           <div className="admin-form-actions"><button className="admin-primary" type="submit"><i className="bi bi-lock" aria-hidden="true" />Changer mon mot de passe</button></div>
         </fieldset>
       </form>

@@ -76,7 +76,7 @@ export default function ShowPharmacie() {
                   <h6>Adresse</h6>
                   <p>
                     <i className="bi bi-geo-alt-fill text-success me-1"></i>{' '}
-                    {p.adresse}, {p.ville}
+                    {[p.adresse,p.quartier,p.ville].filter(Boolean).join(', ')}
                   </p>
                   <h6>Téléphone</h6>
                   <p>

@@ -1,0 +1,11 @@
+.pharmacy-card-actions { display: grid; gap: 12px; margin-top: 16px; }
+.pharmacy-card-actions-secondary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.pharmacy-card-actions .pharmacy-action { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 10px 12px; border: 1px solid #246b37; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 600; line-height: 1.4; text-decoration: none; transition: background-color .2s, color .2s, border-color .2s; }
+.pharmacy-card-actions .pharmacy-action i { font-size: 19px; line-height: 1; }
+.pharmacy-card-actions .pharmacy-action--profile { background: #246b37; color: #fff; }
+.pharmacy-card-actions .pharmacy-action--profile:hover { background: #19562a; border-color: #19562a; color: #fff; }
+.pharmacy-card-actions .pharmacy-action--secondary { background: #fff; color: #246b37; }
+.pharmacy-card-actions a.pharmacy-action--secondary:hover { background: #eff8f1; color: #19562a; }
+.pharmacy-card-actions .pharmacy-action:focus-visible { outline: 3px solid #008000; outline-offset: 3px; }
+.pharmacy-card-actions .pharmacy-action:disabled { background: #fafcfb; border-color: #8fbd9b; color: #7ba78a; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .pharmacy-card-actions .pharmacy-action { transition: none; } }

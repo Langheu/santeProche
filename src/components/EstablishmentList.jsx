@@ -3,6 +3,7 @@ import usePaginatedList from '../hooks/usePaginatedList.js';
 import { listEstablishments } from '../data/api.js';
 import SearchHero from './SearchHero.jsx';
 import Pagination from './Pagination.jsx';
+import PharmacyActions from './PharmacyActions.jsx';
 
 function SkeletonCard() {
   return (
@@ -26,7 +27,7 @@ function Card({ item, index, basePath, isClinic }) {
           <span className={`card-badge ${item.statusBadge}`}>{item.statusText}</span>
         </div>
         <p className="card-address fw-bold">
-          {isClinic ? <i className="bi bi-telephone" aria-hidden="true"></i> : '☎️'}{' '}
+          <i className="bi bi-telephone" aria-hidden="true"></i>{' '}
           {item.telephone || 'Téléphone non renseigné'}
         </p>
         <p className="card-address fw-bold">
@@ -46,13 +47,13 @@ function Card({ item, index, basePath, isClinic }) {
             {item.statusSubText}
           </small>
         </div>
-        <Link
+        {isClinic ? <Link
           className="btn btn-outline-success w-100 mt-2 d-flex align-items-center justify-content-center gap-2"
           to={`${basePath}/${item.slug}`}
         >
           <i className={`bi ${isClinic ? 'bi-file-earmark-text' : 'bi-card-list'}`} aria-hidden="true"></i>{' '}
           Consulter la fiche
-        </Link>
+        </Link> : <PharmacyActions item={item} basePath={basePath} />}
       </div>
     </article>
   );

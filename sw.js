@@ -1,5 +1,5 @@
 
-const CACHE="santeproche-_santeProche_-a7bf0b0a9e2be968", PREFIX="santeproche-_santeProche_-", BASE="/santeProche/", FILES=["/santeProche/index.html","/santeProche/offline.html","/santeProche/manifest.webmanifest","/santeProche/favicon.svg","/santeProche/pwa/icon-192.png","/santeProche/pwa/icon-512.png","/santeProche/pwa/icon-maskable-512.png","/santeProche/pwa/apple-touch-icon.png","/santeProche/assets/index-7wK9i0h8.js","/santeProche/assets/index-CMVn63cp.css","/santeProche/assets/pages-demo-UCvqzmN8.js"];
+const CACHE="santeproche-_santeProche_-e70db9279ad703a3", PREFIX="santeproche-_santeProche_-", BASE="/santeProche/", FILES=["/santeProche/index.html","/santeProche/offline.html","/santeProche/manifest.webmanifest","/santeProche/favicon.svg","/santeProche/pwa/icon-192.png","/santeProche/pwa/icon-512.png","/santeProche/pwa/icon-maskable-512.png","/santeProche/pwa/apple-touch-icon.png","/santeProche/assets/index-BkLqAOxL.js","/santeProche/assets/index-D18Y6W6p.css","/santeProche/assets/pages-demo-UCvqzmN8.js"];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES))));
 self.addEventListener('activate', event => event.waitUntil((async()=>{
   for(const name of await caches.keys()) if(name.startsWith(PREFIX) && name!==CACHE) await caches.delete(name);

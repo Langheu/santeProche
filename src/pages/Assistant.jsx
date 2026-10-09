@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { request, write, fileData, assetUrl } from '../data/api.js';
+import PharmacyActions from '../components/PharmacyActions.jsx';
 import './Assistant.css';
 
 const Icon = ({ name }) => <i className={`bi ${name}`} aria-hidden="true" />;
@@ -19,7 +20,7 @@ function ResultCard({ item, kind }) {
     <div className="assistant-result-copy"><h3><Link to={href}>{name}</Link></h3>{medicine && <p className="assistant-product-name">{item.designation}</p>}<p><Icon name="bi-geo-alt" />{[item.adresse, item.ville].filter(Boolean).join(', ') || 'Adresse non renseignée'}</p>
       <div className="assistant-result-facts"><span><Icon name="bi-person-walking" />{item.distance ? `À ${item.distance}` : 'Distance non disponible'}</span><span className={medicine || item.statusText === 'Ouvert' ? 'assistant-stock' : ''}>{medicine ? 'En stock' : item.statusText}</span>{medicine && <strong>{item.currency ? `${Number(item.prix_public).toLocaleString('fr-FR')} ${item.currency}` : 'Prix à renseigner'}</strong>}</div>
       {item.is_demo && <small className="assistant-demo">Démonstration · Données fictives</small>}
-      <div className="assistant-result-actions"><Link to={href} className="assistant-profile-link">Voir la fiche <Icon name="bi-arrow-right" /></Link>{item.telephone && <a className="assistant-button" href={`tel:${item.telephone.replace(/\s/g, '')}`}><Icon name="bi-telephone" />Appeler</a>}{item.latitude != null && item.longitude != null && <a className="assistant-button assistant-button--primary" href={`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`} target="_blank" rel="noreferrer"><Icon name="bi-cursor-fill" />Y aller</a>}</div>
+      <PharmacyActions item={{ ...item, slug: medicine ? item.pharmacie_slug : item.slug }} basePath={kind === 'cliniques' ? '/cliniques' : '/pharmacies'} />
     </div>
   </article>;
 }
@@ -43,6 +44,10 @@ export default function Assistant() {
   const [listening, setListening] = useState(false);
   const [readAloud, setReadAloud] = useState(false);
   const [voiceNote, setVoiceNote] = useState('');
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const toolsArea = useRef(null);
+  const toolsButton = useRef(null);
+  const photoInput = useRef(null);
   const recognition = useRef(null);
   const conversation = useRef(null);
   const cityInput = useRef(null);
@@ -56,6 +61,14 @@ export default function Assistant() {
   }, []);
   useEffect(() => { if (conversation.current) conversation.current.scrollTop = conversation.current.scrollHeight; }, [messages, busy]);
   useEffect(() => { if (cityOpen) cityInput.current?.focus(); }, [cityOpen]);
+  useEffect(() => {
+    if (!toolsOpen) return;
+    const dismiss = event => { if (!toolsArea.current?.contains(event.target)) setToolsOpen(false); };
+    const escape = event => { if (event.key === 'Escape') { setToolsOpen(false); toolsButton.current?.focus(); } };
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape); };
+  }, [toolsOpen]);
   useEffect(() => {
     const url = photo ? URL.createObjectURL(photo) : '';
     setPhotoUrl(url);
@@ -120,18 +133,31 @@ export default function Assistant() {
   }
 
   return <div className="page-assistant"><main>
-    <section className="assistant-hero"><div className="container"><span><Icon name="bi-stars" />Assistant SantéProche</span><h1>Comment pouvons-nous vous aider ?</h1><p>Décrivez votre recherche : médicament, pharmacie ou clinique.</p></div></section>
+    <section className="assistant-hero"><div className="container"><span><Icon name="bi-stars" />Assistant SantéProche</span><h1>Votre assistant SantéProche</h1><p>Trouvez un médicament, une pharmacie ou une clinique.</p>
+      <div className="assistant-location"><button type="button" disabled={busy || locating || listening} onClick={locate}><Icon name="bi-geo-alt" />{locating ? 'Localisation…' : position.lat != null ? 'Actualiser ma position' : 'Utiliser ma position'}</button><button type="button" disabled={busy} onClick={() => setCityOpen(value => !value)}><Icon name="bi-building" />Choisir une ville</button></div>
+    </div></section>
     <div className="container assistant-workspace">
       {configured === false && <p className="assistant-config-note" role="status"><Icon name="bi-info-circle" />Mode recherche classique. L’IA et l’analyse des photos ne sont pas encore activées.</p>}
       <div className="assistant-layout">
         <section className="assistant-panel assistant-chat" aria-label="Conversation avec l’assistant">
-          <header className="assistant-chat-header"><Icon name="bi-stars" /><div><h2>Assistant SantéProche</h2><p>{configured ? 'Recherche assistée par IA dans les fiches du site' : 'Recherche dans les fiches du site'}</p></div></header>
-          <div ref={conversation} className="assistant-conversation" role="log" aria-live="polite" aria-relevant="additions text">{messages.map((message, i) => <div key={i} className={`assistant-message assistant-message--${message.role}`}><span><Icon name={message.role === 'user' ? 'bi-person' : 'bi-stars'} /></span><p>{message.text}</p></div>)}{busy && <p className="assistant-working" role="status">{configured ? 'Analyse de votre demande…' : 'Recherche dans les fiches…'}</p>}</div>
+          <header className="assistant-chat-header"><Icon name="bi-chat-dots" /><div><h2>Comment puis-je vous aider ?</h2><p>{configured ? 'Recherche assistée par IA dans les fiches du site' : 'Recherche dans les fiches du site'}</p></div></header>
           <div className="assistant-suggestions">{SUGGESTIONS.map(([icon, label, message]) => <button key={label} type="button" disabled={busy || listening} onClick={() => { setPhoto(null); setPending(null); search(message); }}><Icon name={icon} />{label}</button>)}</div>
-          <div className="assistant-location"><button type="button" disabled={busy || locating || listening} onClick={locate}><Icon name="bi-geo-alt" />{locating ? 'Localisation…' : position.lat != null ? 'Actualiser ma position' : 'Utiliser ma position'}</button><button className="assistant-text-button" type="button" disabled={busy} onClick={() => setCityOpen(value => !value)}>Choisir ma ville</button></div>
+          <div ref={conversation} className="assistant-conversation" role="log" aria-live="polite" aria-relevant="additions text">{messages.map((message, i) => <div key={i} className={`assistant-message assistant-message--${message.role}`}><span><Icon name={message.role === 'user' ? 'bi-person' : 'bi-stars'} /></span><p>{message.text}</p></div>)}{busy && <p className="assistant-working" role="status">{configured ? 'Analyse de votre demande…' : 'Recherche dans les fiches…'}</p>}</div>
           {cityOpen && <form className="assistant-city" onSubmit={event => { event.preventDefault(); setPosition({}); if (result?.intent) search('', { intent: result.intent, city: city.trim(), lat: null, lng: null }); }}><label>Ville ou quartier<input ref={cityInput} value={city} onChange={event => setCity(event.target.value)} placeholder="Saisir une ville ou un quartier" maxLength={150} disabled={busy} /></label><button type="submit" disabled={busy || listening}>Appliquer</button></form>}
           {error && <p className="assistant-error" role="alert">{error}</p>}
-          <form className="assistant-composer" onSubmit={send}><label className="assistant-photo-button"><Icon name="bi-camera" /><span>Photo</span><input className="assistant-sr-only" aria-label="Photo du produit" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={pickPhoto} disabled={busy || listening} /></label><label className="assistant-sr-only" htmlFor="assistant-text">Votre demande</label><textarea id="assistant-text" value={text} onChange={event => setText(event.target.value)} placeholder="Écrivez votre demande…" rows={2} maxLength={1500} disabled={busy} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!busy && !listening && text.trim()) { const message = text.trim(); setText(''); search(message); } } }} /><button className={listening ? 'assistant-mic assistant-mic--listening' : 'assistant-mic'} type="button" aria-label={listening ? 'Arrêter la dictée' : 'Dicter ma recherche'} aria-pressed={listening} disabled={busy || !SpeechRecognition} onClick={toggleVoice}><Icon name={listening ? 'bi-stop-fill' : 'bi-mic'} /></button><button className="assistant-send" type="submit" aria-label="Envoyer ma recherche" disabled={busy || listening || !text.trim()}><Icon name="bi-send-fill" /></button></form>
+          <form className="assistant-composer" onSubmit={send}>
+            <div className="assistant-tools" ref={toolsArea} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setToolsOpen(false); }}>
+              <button ref={toolsButton} className="assistant-plus" type="button" aria-label="Ajouter une photo ou dicter" aria-expanded={toolsOpen} aria-controls="assistant-tools-menu" disabled={busy} onClick={() => setToolsOpen(value => !value)}><Icon name={toolsOpen ? 'bi-x-lg' : 'bi-plus-lg'} /></button>
+              {toolsOpen && <div className="assistant-tools-menu" id="assistant-tools-menu" role="group" aria-label="Options de recherche">
+                <button type="button" disabled={listening} onClick={() => { setToolsOpen(false); photoInput.current?.click(); }}><Icon name="bi-camera" />Ajouter une photo</button>
+                <button type="button" disabled={!SpeechRecognition} onClick={() => { setToolsOpen(false); toggleVoice(); toolsButton.current?.focus(); }}><Icon name={listening ? 'bi-stop-circle' : 'bi-mic'} />{listening ? 'Arrêter la dictée' : 'Dicter ma recherche'}</button>
+              </div>}
+            </div>
+            <input ref={photoInput} tabIndex={-1} className="assistant-sr-only" aria-label="Photo du produit" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={pickPhoto} disabled={busy || listening} />
+            <label className="assistant-sr-only" htmlFor="assistant-text">Votre demande</label>
+            <textarea id="assistant-text" value={text} onChange={event => setText(event.target.value)} placeholder="Écrivez votre demande…" rows={2} maxLength={1500} disabled={busy} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); if (!busy && !listening && text.trim()) { const message = text.trim(); setText(''); search(message); } } }} />
+            <button className="assistant-send" type="submit" aria-label="Envoyer ma recherche" disabled={busy || listening || !text.trim()}><Icon name="bi-arrow-up" /></button>
+          </form>
           <div className="assistant-voice-options"><label><input type="checkbox" checked={readAloud} disabled={!window.speechSynthesis} onChange={event => { setReadAloud(event.target.checked); if (!event.target.checked) window.speechSynthesis?.cancel(); }} />Lire les réponses à voix haute</label>{readAloud && <button type="button" onClick={() => window.speechSynthesis?.cancel()}>Arrêter la lecture</button>}</div>
           <p className="assistant-voice-note" aria-live="polite">{listening ? 'Écoute en cours… Vérifiez la transcription, puis envoyez votre demande.' : voiceNote || (!SpeechRecognition ? 'La dictée n’est pas disponible dans ce navigateur.' : 'Le micro permet de dicter. Vérifiez les noms et dosages avant l’envoi.')}</p>
           <small className="assistant-disclaimer">Cet assistant aide à rechercher des fiches. Il ne fournit pas de diagnostic ni de conseil de traitement.</small>
@@ -143,7 +169,7 @@ export default function Assistant() {
             <div className="assistant-result-list">{result.results.map(item => <ResultCard key={`${result.intent.kind}-${item.id}`} item={item} kind={result.intent.kind} />)}</div>
             {!result.results.length && <div className="assistant-empty"><Icon name="bi-search" /><p>{result.message}</p></div>}
             <p className="assistant-result-source">Les prix, stocks et coordonnées proviennent des fiches enregistrées. Les distances sont calculées à vol d’oiseau quand la position est disponible.</p>
-          </> : <div className="assistant-empty"><Icon name="bi-chat-dots" /><h3>Votre recherche commence ici</h3><p>Écrivez votre demande, dictez-la avec le micro ou choisissez une suggestion. Les fiches correspondantes s’afficheront ici.</p><Link to="/medicaments">Consulter les médicaments <Icon name="bi-arrow-right" /></Link></div>}
+          </> : <div className="assistant-empty"><Icon name="bi-chat-dots" /><h3>Votre recherche commence ici</h3><p>Écrivez votre demande, dictez-la avec le bouton + ou choisissez une suggestion. Les fiches correspondantes s’afficheront ici.</p><Link to="/medicaments">Consulter les médicaments <Icon name="bi-arrow-right" /></Link></div>}
         </section>
       </div>
     </div>

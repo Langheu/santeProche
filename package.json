@@ -3,18 +3,24 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "node scripts/dev.js",
     "dev:frontend": "vite",
     "backend": "node server/index.js",
+    "db:migrate": "node scripts/migrate-postgres.js",
+    "db:local": "node scripts/setup-postgres-local.js",
     "start": "node server/index.js",
     "test": "node --test server/*.test.js",
+    "test:postgres": "node scripts/test-postgres.js",
     "build": "vite build",
     "build:pages": "node scripts/build-pages.js",
     "preview": "vite preview"
   },
   "dependencies": {
+    "pg": "^8.23.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"

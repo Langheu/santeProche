@@ -10,6 +10,12 @@ test('Administration, catalogue, images privées et persistance', async () => {
   process.env.DATA_DIR = directory;
   process.env.SEED_DEMO = 'false';
   process.env.NODE_ENV = 'test';
+  process.env.LOCAL_POSTGRES = 'false';
+  if (process.env.TEST_DATABASE_URL) {
+    const databaseName = new URL(process.env.TEST_DATABASE_URL).pathname;
+    assert.match(databaseName, /^\/santeproche_test_[a-z0-9_]+$/);
+    process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
+  } else delete process.env.DATABASE_URL;
   delete process.env.OPENAI_API_KEY;
   const { server, db } = await import('./index.js');
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -25,7 +31,7 @@ test('Administration, catalogue, images privées et persistance', async () => {
     assert.equal(setup.status, 201);
     cookie = setup.headers.get('set-cookie').split(';')[0];
     assert.match(setup.headers.get('set-cookie'), /HttpOnly; SameSite=Strict/);
-    assert.notEqual(db.prepare('SELECT hash FROM admins').get().hash, 'test-password-2026');
+    assert.notEqual((await db.prepare('SELECT hash FROM admins').get()).hash, 'test-password-2026');
     assert.equal((await api('/auth/setup', 'POST', {})).status, 409);
     const pharmacy = await (await api('/admin/pharmacies', 'POST', { nom: 'Pharmacie de test', telephone: '+235 60000000', adresse: 'Adresse A', ville: 'Ville A' })).json();
     assert.ok(pharmacy.id);
@@ -66,9 +72,10 @@ test('Administration, catalogue, images privées et persistance', async () => {
     assert.equal((await api(imagePath)).status, 200);
     assert.equal((await (await api('/admin/requests')).json()).length, 2);
     assert.equal((await (await api('/stats')).json()).pharmacies, 1);
-    const secondDB = new DatabaseSync(join(directory, 'santeproche.sqlite'));
-    assert.equal(JSON.parse(secondDB.prepare('SELECT data FROM records WHERE kind=? AND id=?').get('pharmacies', pharmacy.id).data).telephone, '+235 61111111');
-    secondDB.close();
+    const secondDB = db.kind === 'sqlite' ? new DatabaseSync(join(directory, 'santeproche.sqlite')) : null;
+    const persisted = secondDB ? secondDB.prepare('SELECT data FROM records WHERE kind=? AND id=?').get('pharmacies', pharmacy.id) : await db.prepare('SELECT data FROM records WHERE kind=? AND id=?').get('pharmacies', pharmacy.id);
+    assert.equal(JSON.parse(persisted.data).telephone, '+235 61111111');
+    secondDB?.close();
     assert.equal((await api('/admin/medicaments/' + medicine.id, 'DELETE')).status, 200);
     assert.equal((await api('/admin/pharmacies/' + pharmacy.id, 'DELETE')).status, 200);
     assert.equal((await api('/auth/logout', 'POST', {})).status, 200);
@@ -101,7 +108,7 @@ test('Administration, catalogue, images privées et persistance', async () => {
     assert.equal((await api('/auth/login', 'POST', { email: 'new@example.test', password: 'new-password-test-2026' })).status, 200);
   } finally {
     await new Promise(resolve => server.close(resolve));
-    db.close();
+    await db.close();
     rmSync(directory, { recursive: true, force: true });
   }
 });

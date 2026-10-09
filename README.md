@@ -118,3 +118,9 @@ Les formulaires pharmacie proposent Pays → Ville → Quartier, avec des choix 
 L’onglet administrateur « Localisations » ajoute ou retire les choix de référence (`locations`, schéma version 3). Les fiches publiées non fictives complètent également la liste ; retirer un choix ne modifie pas ces fiches. Un premier répertoire partiel du Tchad est initialisé une seule fois, sans imposer de pays par défaut. Sources : https://www.beac.int/pays/tchad/ et https://www.dgi.td/docs/circulaire/circulaire2023.pdf. Les lieux et leur indicateur d’initialisation sont conservés par la migration PostgreSQL.
 
 Chaque champ de mot de passe possède un bouton œil indépendant : le mot de passe est masqué initialement, le bouton affiche ou masque la valeur sans soumettre le formulaire.
+
+## Choisir la position d’un établissement
+
+Les formulaires pharmacie et les fiches administrateur pharmacie/clinique partagent un sélecteur d’emplacement. « Utiliser ma position » demande l’autorisation du navigateur, puis remplit les coordonnées et affiche leur précision estimée. La position n’est enregistrée qu’avec le formulaire. Sur la carte, un clic, un déplacement du repère ou le bouton « Placer le repère au centre » choisit un emplacement ; ouvrir la carte seule ne définit aucune position. Les coordonnées manuelles restent accessibles. Un refus de localisation ou une erreur réseau n’efface pas la position existante.
+
+La carte utilise Leaflet 1.9.4 et les tuiles OpenStreetMap avec attribution visible, chargées uniquement à l’ouverture de la carte, sans préchargement hors ligne. Le centre initial sur l’Afrique est uniquement une vue de navigation. La carte requiert une connexion ; la géolocalisation requiert un navigateur autorisé et HTTPS en production (localhost autorisé pour le développement). Pour un trafic élevé, configurer un fournisseur de tuiles adapté selon https://operations.osmfoundation.org/policies/tiles/.

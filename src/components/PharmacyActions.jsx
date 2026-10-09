@@ -20,9 +20,9 @@ export default function PharmacyActions({ item, basePath }) {
           <i className="bi bi-telephone" aria-hidden="true" />Appeler
         </button>}
         {canNavigate ? <a className="pharmacy-action pharmacy-action--secondary" href={`https://www.google.com/maps/dir/?api=1&destination=${Number(item.latitude)},${Number(item.longitude)}`} target="_blank" rel="noopener noreferrer">
-          <i className="bi bi-cursor" aria-hidden="true" />Y aller
+          <i className="bi bi-cursor" aria-hidden="true" />Aller
         </a> : <button className="pharmacy-action pharmacy-action--secondary" type="button" disabled title="La position de cette pharmacie n’est pas renseignée.">
-          <i className="bi bi-cursor" aria-hidden="true" />Y aller
+          <i className="bi bi-cursor" aria-hidden="true" />Aller
         </button>}
       </div>
     </div>

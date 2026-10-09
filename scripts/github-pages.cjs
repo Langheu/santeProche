@@ -11,6 +11,9 @@ async function api(path,method='GET',body){const response=await fetch(root+path,
   }else if(mode==='enable'){
     const old=await api('/pages');const result=await api('/pages',old.status===404?'POST':'PUT',{build_type:'legacy',source:{branch:'gh-pages',path:'/'}});
     console.log(JSON.stringify({status:result.status,url:result.data?.html_url,message:result.data?.message}));if(result.status>=400)process.exitCode=1;
+  }else if(mode==='build'){
+    const result=await api('/pages/builds','POST');
+    console.log(JSON.stringify({status:result.status,build:result.data?.status,message:result.data?.message}));if(result.status>=400)process.exitCode=1;
   }else if(mode==='status'){
     const page=await api('/pages'),latest=await api('/pages/builds/latest');
     console.log(JSON.stringify({pages_status:page.status,url:page.data?.html_url,status:page.data?.status,build:latest.data?.status,error:latest.data?.error?.message,commit:latest.data?.commit}));

@@ -171,7 +171,7 @@ export default function Ordonnance() {
                         id="adresse"
                         type="text"
                         autoComplete="street-address"
-                        placeholder="Ex. : Kipé, Matam…"
+                        placeholder="Votre ville ou votre quartier"
                         value={adresse}
                         onChange={e => setAdresse(e.target.value)}
                       />
@@ -287,8 +287,7 @@ export default function Ordonnance() {
                       </div>
                     </div>
                     <div className="price-value">
-                      <strong>0</strong>
-                      <span>GNF</span>
+                      <strong>Gratuit</strong>
                     </div>
                   </div>
 

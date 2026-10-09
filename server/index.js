@@ -47,7 +47,7 @@ if (!db.prepare('SELECT value FROM settings WHERE key=?').get('catalog_initializ
     if (process.env.SEED_DEMO !== 'false') {
       for (const item of PHARMACY_LIST) insert.run('pharmacies', String(item.id), JSON.stringify({ ...item, id: String(item.id), image: '/img/pharmacies/pharmacie-demo.jpg', is_demo: true }));
       for (const item of CLINIC_LIST) insert.run('cliniques', String(item.id), JSON.stringify({ ...item, id: String(item.id), image: '/img/cliniques/clinique-demo.jpg', is_demo: true }));
-      for (const item of MEDICINE_LIST) insert.run('medicaments', String(item.id), JSON.stringify({ id: String(item.id), designation: item.designation, slug: item.slug, forme: item.forme, prix_public: item.prix_public, quantite: item.quantite, pharmacie_id: String(PHARMACY_LIST.find(p => p.slug === item.pharmacie_slug).id), image: item.image, currency: 'GNF', is_demo: true }));
+      for (const item of MEDICINE_LIST) insert.run('medicaments', String(item.id), JSON.stringify({ id: String(item.id), designation: item.designation, slug: item.slug, forme: item.forme, prix_public: item.prix_public, quantite: item.quantite, pharmacie_id: String(PHARMACY_LIST.find(p => p.slug === item.pharmacie_slug).id), image: item.image, currency: '', is_demo: true }));
     }
     db.prepare('INSERT INTO settings(key,value) VALUES(?,?)').run('catalog_initialized', 'true');
     db.exec('COMMIT');
@@ -117,7 +117,7 @@ function validateRecord(kind, input, existing) {
     record.prix_public = numeric(input.prix_public, 0, 1e12, 'Prix');
     record.quantite = numeric(input.quantite, 0, 1e9, 'Quantité');
     if (!Number.isInteger(record.quantite)) fail(400, 'La quantité doit être entière.');
-    record.currency = text(input.currency || 'GNF', 3).toUpperCase(); if (!/^[A-Z]{3}$/.test(record.currency)) fail(400, 'Devise invalide.');
+    record.currency = text(input.currency, 3).toUpperCase(); if (!/^[A-Z]{3}$/.test(record.currency)) fail(400, 'Renseignez une devise valide à trois lettres.');
   } else {
     record.nom = text(input.nom, 200); if (!record.nom) fail(400, 'Le nom de l’établissement est obligatoire.');
     record.slug = existing?.slug || `${slugify(record.nom) || 'etablissement'}-${record.id.slice(0, 8)}`;

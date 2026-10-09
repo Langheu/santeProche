@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getMedicine } from '../data/api.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
-const formatPrice = (value, currency) => `${Number(value).toLocaleString('fr-FR')} ${currency}`;
+const formatPrice = (value, currency) => currency ? `${Number(value).toLocaleString('fr-FR')} ${currency}` : 'Prix à renseigner';
 
 // Fiche d'un médicament : présentation et pharmacies qui le proposent
 export default function ShowMedicament() {
@@ -68,7 +68,7 @@ export default function ShowMedicament() {
                         <strong>Disponible dans :</strong> {medicament.pharmacies.length} pharmacie(s)
                       </p>
                       <p className="mb-0">
-                        <strong>Prix constatés :</strong> {currencies.size === 1 ? `de ${formatPrice(Math.min(...prices), [...currencies][0])} à ${formatPrice(Math.max(...prices), [...currencies][0])}` : 'Voir les prix et devises par pharmacie ci-dessous.'}
+                        <strong>Prix constatés :</strong> {currencies.size === 1 && [...currencies][0] ? `de ${formatPrice(Math.min(...prices), [...currencies][0])} à ${formatPrice(Math.max(...prices), [...currencies][0])}` : currencies.size === 1 ? 'Prix à renseigner' : 'Voir les prix et devises par pharmacie ci-dessous.'}
                       </p>
                     </div>
                   </div>

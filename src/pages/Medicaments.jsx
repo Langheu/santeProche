@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination.jsx';
 import './Medicaments.css';
 import './MedicamentsProfiles.css';
 
-const formatPrice = (value, currency) => `${Number(value).toLocaleString('fr-FR')} ${currency}`;
+const formatPrice = (value, currency) => currency ? `${Number(value).toLocaleString('fr-FR')} ${currency}` : 'Prix à renseigner';
 
 function SkeletonCard() {
   return (

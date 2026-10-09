@@ -8,7 +8,7 @@ export const SITE = {
   phoneHref: '+23566566871',
   whatsapp: '23566566871',
   email: 'contact@santeproche.example',
-  address: 'Conakry, Guinée',
+  address: 'Afrique',
   company: 'SantéProche',
   socials: {
     facebook: '#',

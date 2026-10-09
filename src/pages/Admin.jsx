@@ -18,7 +18,7 @@ function RecordImage({ src, kind, preview = false }) {
   </span>;
 }
 const emptyRecord = kind => kind === 'medicaments'
-  ? { designation: '', forme: '', pharmacie_id: '', prix_public: '', quantite: '', currency: 'GNF', image: '', is_demo: false }
+  ? { designation: '', forme: '', pharmacie_id: '', prix_public: '', quantite: '', currency: '', image: '', is_demo: false }
   : { nom: '', telephone: '', adresse: '', ville: '', pays: '', email: '', latitude: '', longitude: '', description: '', image: '', garde: false, is_demo: false };
 
 function Field({ label, name, record, onChange, type = 'text', required = false, ...props }) {
@@ -133,7 +133,7 @@ export default function Admin() {
                   <div className="admin-records">{visibleRecords.map(item => <div className="admin-record" key={item.id} data-selected={selected === item.id}>
                     <button className="admin-record-main" type="button" aria-pressed={selected === item.id} onClick={() => select(item)} disabled={busy || uploading}>
                     <RecordImage src={item.image} kind={kind} />
-                    <span className="admin-record-copy"><strong>{item.nom || item.designation}</strong><span>{kind === 'medicaments' ? `${Number(item.prix_public).toLocaleString('fr-FR')} ${item.currency || 'GNF'} · ${pharmacies.find(p => p.id === item.pharmacie_id)?.nom || ''}` : [item.adresse, item.ville].filter(Boolean).join(', ') || 'Adresse non renseignée'}</span>{item.is_demo && <small>Démonstration</small>}</span>
+                    <span className="admin-record-copy"><strong>{item.nom || item.designation}</strong><span>{kind === 'medicaments' ? `${item.currency ? Number(item.prix_public).toLocaleString('fr-FR') + ' ' + item.currency : 'Prix à renseigner'} · ${pharmacies.find(p => p.id === item.pharmacie_id)?.nom || ''}` : [item.adresse, item.ville].filter(Boolean).join(', ') || 'Adresse non renseignée'}</span>{item.is_demo && <small>Démonstration</small>}</span>
                     </button>
                     <button className="admin-edit-button" type="button" aria-label={`Modifier ${item.nom || item.designation}`} onClick={() => edit(item)} disabled={busy || uploading}><Icon name="bi-pencil" />Modifier</button>
                   </div>)}{!visibleRecords.length && <p className="admin-empty">{records.length ? 'Aucune fiche ne correspond à votre recherche.' : 'Aucune fiche. Utilisez Ajouter pour créer la première.'}</p>}</div>

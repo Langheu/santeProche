@@ -7,7 +7,7 @@ const pharmacies = PHARMACY_LIST.map(p => ({ ...p, image: asset('/img/pharmacies
 const cliniques = CLINIC_LIST.map(p => ({ ...p, image: asset('/img/cliniques/clinique-demo.jpg'), is_demo: true }));
 const medicaments = MEDICINE_LIST.map(m => {
   const p = pharmacies.find(p => p.slug === m.pharmacie_slug);
-  return { ...p, ...m, pharmacie_id: p?.id, telephone: p?.telephone, adresse: p?.adresse, ville: p?.ville, latitude: p?.latitude, longitude: p?.longitude, pharmacie_image: p?.image, image: asset(m.image), currency: 'GNF', is_demo: true };
+  return { ...p, ...m, pharmacie_id: p?.id, telephone: p?.telephone, adresse: p?.adresse, ville: p?.ville, latitude: p?.latitude, longitude: p?.longitude, pharmacie_image: p?.image, image: asset(m.image), currency: '', is_demo: true };
 });
 export async function demoRequest(path, options = {}) {
   const url = new URL(path, 'https://demo.invalid'), route = url.pathname, query = url.searchParams;

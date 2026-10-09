@@ -71,9 +71,21 @@ async function initializeSchema(db) {
       CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS sessions_expires_idx ON sessions(expires);
       CREATE INDEX IF NOT EXISTS requests_created_idx ON requests(created);
+      CREATE TABLE IF NOT EXISTS partners (
+        id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, responsable TEXT NOT NULL,
+        salt TEXT NOT NULL, hash TEXT NOT NULL,
+        status TEXT NOT NULL CHECK(status IN ('pending','approved','rejected','suspended')),
+        profile TEXT NOT NULL, document TEXT NOT NULL, pharmacy_id TEXT UNIQUE,
+        reason TEXT NOT NULL DEFAULT '', created TEXT NOT NULL, updated TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS partner_sessions (
+        token TEXT PRIMARY KEY, partner_id TEXT NOT NULL REFERENCES partners(id) ON DELETE CASCADE, expires BIGINT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS partner_sessions_expires_idx ON partner_sessions(expires);
     `);
     const columns = db.kind === 'sqlite' ? await db.prepare('PRAGMA table_info(admins)').all() : await db.prepare("SELECT column_name AS name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='admins'").all();
     for (const field of ['nom', 'telephone', 'image']) if (!columns.some(column => column.name === field)) await db.exec(`ALTER TABLE admins ADD COLUMN ${field} TEXT NOT NULL DEFAULT ''`);
     await db.prepare('INSERT INTO schema_migrations(version,applied) VALUES(?,?) ON CONFLICT(version) DO NOTHING').run(1, new Date().toISOString());
+    await db.prepare('INSERT INTO schema_migrations(version,applied) VALUES(?,?) ON CONFLICT(version) DO NOTHING').run(2, new Date().toISOString());
   });
 }

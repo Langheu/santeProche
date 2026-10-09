@@ -79,6 +79,7 @@ export default function GestionPharmacie() {
                   Chaque jour, des habitants cherchent sur {SITE.name} une pharmacie ouverte ou un médicament précis.
                   Assurez-vous qu’ils tombent sur la vôtre.
                 </p>
+                <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap',marginTop:20}}><Link to="/inscription-pharmacie" className="btn btn-success">Inscrire ma pharmacie</Link><Link to="/espace-pharmacie" className="btn btn-outline-success">Se connecter à mon espace</Link></div>
               </div>
             </div>
           </div>

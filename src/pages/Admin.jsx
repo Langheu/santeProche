@@ -4,10 +4,11 @@ import { request, write, fileData, assetUrl } from '../data/api.js';
 import { SITE } from '../site.js';
 import './Admin.css';
 import AdminProfile from './AdminProfile.jsx';
+import AdminPartners from './AdminPartners.jsx';
 
 const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
-const TABS = { pharmacies: 'Pharmacies', cliniques: 'Cliniques', medicaments: 'Médicaments', requests: 'Demandes reçues' };
-const ICONS = { pharmacies: 'bi-shop', cliniques: 'bi-hospital', medicaments: 'bi-capsule', requests: 'bi-envelope' };
+const TABS = { pharmacies: 'Pharmacies', cliniques: 'Cliniques', medicaments: 'Médicaments', partners: 'Inscriptions pharmacies', requests: 'Demandes reçues' };
+const ICONS = { pharmacies: 'bi-shop', cliniques: 'bi-hospital', medicaments: 'bi-capsule', partners: 'bi-person-plus', requests: 'bi-envelope' };
 const Icon = ({ name }) => <i className={`bi ${name}`} aria-hidden="true" />;
 
 function RecordImage({ src, kind, preview = false }) {
@@ -43,7 +44,7 @@ export default function Admin() {
   useEffect(() => { request('/auth/status').then(setAuth).catch(e => setError(e.message)); }, []);
   useEffect(() => {
     if (!auth?.authenticated) return;
-    if (kind === 'profile') { setLoading(false); setError(''); setMessage(''); return; }
+    if (kind === 'profile' || kind === 'partners') { setLoading(false); setError(''); setMessage(''); return; }
     let cancelled = false;
     setLoading(true); setError(''); setMessage(''); setSelected(null); setFilter(''); setForm(emptyRecord(kind));
     Promise.all([request(`/admin/${kind}`), kind === 'medicaments' ? request('/admin/pharmacies') : Promise.resolve([])])
@@ -123,7 +124,7 @@ export default function Admin() {
             <div className="admin-title"><div><h1>Gérer les informations du site</h1><p>Modifiez les fiches et leurs images.</p></div><span className="admin-contact"><Icon name="bi-telephone" />Contact : {SITE.phone}</span></div>
             <nav className="admin-tabs" aria-label="Catégories">{Object.entries(TABS).map(([key, label]) => <button type="button" key={key} aria-pressed={kind === key} disabled={busy || uploading} onClick={() => setKind(key)}><Icon name={ICONS[key]} />{label}</button>)}</nav>
             {message && <p className="admin-success" role="status">{message}</p>}
-            {kind === 'profile' ? <AdminProfile onBusyChange={setBusy} /> : loading ? <p>Chargement des données…</p> : kind === 'requests' ? (
+            {kind === 'partners' ? <AdminPartners onBusyChange={setBusy} /> : kind === 'profile' ? <AdminProfile onBusyChange={setBusy} /> : loading ? <p>Chargement des données…</p> : kind === 'requests' ? (
               <div className="admin-requests">{!records.length && <p>Aucune demande reçue.</p>}{records.map(item => <article className="admin-panel" key={item.id}><h2>{item.kind === 'contact' ? item.data.sujet : 'Demande d’ordonnance'}</h2><p>{new Date(item.created).toLocaleString('fr-FR')}</p>{item.kind === 'contact' ? <><p>{item.data.nom} · {item.data.email}</p><p className="admin-message">{item.data.message}</p></> : <><p>{item.data.telephone} · {item.data.adresse || 'Quartier non renseigné'}</p><a href={assetUrl(`/api/admin/prescriptions/${item.id}/image`)} target="_blank" rel="noreferrer">Voir l’ordonnance</a></>}</article>)}</div>
             ) : (
               <div className="admin-layout">

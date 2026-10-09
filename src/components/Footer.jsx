@@ -4,6 +4,8 @@ import { SITE } from '../site.js';
 const NAVIGATION = [
   { label: 'Accueil', to: '/' },
   { label: 'Pour les pharmacies', to: '/devenir-partenaire-pharmacie' },
+  { label: 'Inscrire ma pharmacie', to: '/inscription-pharmacie' },
+  { label: 'Espace pharmacie', to: '/espace-pharmacie' },
   { label: 'Pour les grossistes', to: '/devenir-partenaire-grossiste' },
   { label: 'FAQ', to: '/faq' },
 ];

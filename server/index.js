@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { openDatabase } from './database.js';
 import { createRepository } from './repository.js';
 import { ensureLocalPostgres } from './local-postgres.js';
+import { partnerRoutes } from './partners.js';
 import { DAYS, slugify, openingStatus, withDistance, paginate, searchItems } from './catalog.js';
 import { aiConfigured, interpret, validateIntent, searchCatalog } from './assistant.js';
 
@@ -15,6 +16,7 @@ if (process.env.NODE_ENV !== 'test' && existsSync(join(root, '.env'))) process.l
 const storage = resolve(process.env.DATA_DIR || join(root, 'server', 'storage'));
 mkdirSync(join(storage, 'uploads'), { recursive: true });
 mkdirSync(join(storage, 'prescriptions'), { recursive: true });
+mkdirSync(join(storage, 'partner-documents'), { recursive: true });
 await ensureLocalPostgres(storage);
 const db = await openDatabase({ directory: storage });
 const { insert, list, find, administrator, recordRequest, initializeCatalog } = createRepository(db);
@@ -123,7 +125,7 @@ function hydrateMedicine(item, pharmacy) {
   return { ...pharmacy, ...item, pharmacie: pharmacy.nom, pharmacie_slug: pharmacy.slug, pharmacie_image: pharmacy.image, telephone: pharmacy.telephone, adresse: pharmacy.adresse, ville: pharmacy.ville, latitude: pharmacy.latitude, longitude: pharmacy.longitude };
 }
 async function hydrateMedicines(items) {
-  const pharmacies = new Map((await list('pharmacies')).map(item => [item.id, item]));
+  const pharmacies = new Map((await visibleList('pharmacies')).map(item => [item.id, item]));
   return items.map(item => hydrateMedicine(item, pharmacies.get(item.pharmacie_id))).filter(Boolean);
 }
 function saveImage(input, directory) {
@@ -142,6 +144,13 @@ function serveFile(res, filename, type, cacheControl = 'no-store') {
   if (!existsSync(filename)) fail(404, 'Fichier introuvable.');
   res.writeHead(200, { 'Content-Type': type, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': cacheControl }); res.end(readFileSync(filename));
 }
+const handlePartners = partnerRoutes({ db, list, find, validateRecord, body, json, fail, requireAdmin, saveImage, serveFile, storage, production });
+async function visibleList(kind) {
+  const items = await list(kind);
+  if (kind === 'cliniques') return items;
+  const hidden = new Set((await db.prepare("SELECT pharmacy_id FROM partners WHERE status<>? AND pharmacy_id IS NOT NULL").all('approved')).map(row => row.pharmacy_id));
+  return items.filter(item => !hidden.has(kind === 'pharmacies' ? item.id : item.pharmacie_id));
+}
 export const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost'); const path = url.pathname; const method = req.method;
@@ -153,6 +162,7 @@ export const server = createServer(async (req, res) => {
     if (!allowedOrigin && method !== 'GET') fail(403, 'Origine non autorisée.');
     if (method === 'OPTIONS') { res.writeHead(204, { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE', 'Access-Control-Allow-Headers': 'Content-Type' }); res.end(); return; }
 
+    if (await handlePartners(req, res, path, method)) return;
     if (path === '/api/health') return json(res, 200, { status: 'ok' });
     if (path === '/api/assistant/status' && method === 'GET') return json(res, 200, { configured: aiConfigured() });
     if (path === '/api/assistant/search' && method === 'POST') {
@@ -183,7 +193,7 @@ export const server = createServer(async (req, res) => {
       }
       if (input.city != null) parsed.intent.city = text(input.city, 150);
       if (parsed.confirmation) return json(res, 200, { ...parsed, results: [], total: 0, message: 'Vérifiez le nom, le dosage et la présentation avant de rechercher.' });
-      const catalog = { pharmacies: await list('pharmacies'), cliniques: await list('cliniques'), medicaments: await hydrateMedicines(await list('medicaments')) };
+      const catalog = { pharmacies: await visibleList('pharmacies'), cliniques: await visibleList('cliniques'), medicaments: await hydrateMedicines(await visibleList('medicaments')) };
       return json(res, 200, { ...parsed, ...searchCatalog(parsed.intent, catalog, location) });
     }
     if (path === '/api/auth/status' && method === 'GET') return json(res, 200, { setupRequired: !(await administrator()), authenticated: Boolean(await authorized(req)) });
@@ -210,9 +220,9 @@ export const server = createServer(async (req, res) => {
     }
     if (path === '/api/auth/logout' && method === 'POST') { const token = cookieToken(req); if (token) await db.prepare('DELETE FROM sessions WHERE token=?').run(hashToken(token)); sessionCookie(res, '', 0); return json(res, 200, { success: true }); }
 
-    if (path === '/api/stats' && method === 'GET') return json(res, 200, { pharmacies: (await list('pharmacies')).length, cliniques: (await list('cliniques')).length, medicaments: new Set((await list('medicaments')).map(m => m.slug)).size, garde: (await list('pharmacies')).filter(p => p.garde).length });
+    if (path === '/api/stats' && method === 'GET') return json(res, 200, { pharmacies: (await visibleList('pharmacies')).length, cliniques: (await visibleList('cliniques')).length, medicaments: new Set((await visibleList('medicaments')).map(m => m.slug)).size, garde: (await visibleList('pharmacies')).filter(p => p.garde).length });
     if (['/api/pharmacies', '/api/cliniques', '/api/pharmacies-garde', '/api/medicaments'].includes(path) && method === 'GET') {
-      const kind = path.split('/').pop(); let items = kind === 'medicaments' ? await hydrateMedicines((await list(kind)).filter(item => item.quantite > 0)) : await list(kind === 'pharmacies-garde' ? 'pharmacies' : kind);
+      const kind = path.split('/').pop(); let items = kind === 'medicaments' ? await hydrateMedicines((await visibleList(kind)).filter(item => item.quantite > 0)) : await visibleList(kind === 'pharmacies-garde' ? 'pharmacies' : kind);
       if (kind === 'pharmacies-garde') items = items.filter(item => item.garde);
       items = searchItems(items, url.searchParams.get('search'), kind === 'medicaments' ? ['designation', 'pharmacie'] : ['nom', 'adresse', 'ville', 'description']);
       return json(res, 200, paginate(withDistance(items, url.searchParams.get('lat'), url.searchParams.get('lng')), url.searchParams));
@@ -220,8 +230,8 @@ export const server = createServer(async (req, res) => {
     const detail = path.match(/^\/api\/(etablissements|medicaments)\/([^/]+)$/);
     if (detail && method === 'GET') {
       const slug = decodeURIComponent(detail[2]);
-      if (detail[1] === 'etablissements') { const item = [...await list('pharmacies'), ...await list('cliniques')].find(p => p.slug === slug); if (!item) fail(404, 'Établissement introuvable.'); return json(res, 200, { ...item, ...openingStatus(item) }); }
-      const offers = await hydrateMedicines((await list('medicaments')).filter(m => m.slug === slug && m.quantite > 0));
+      if (detail[1] === 'etablissements') { const item = [...await visibleList('pharmacies'), ...await visibleList('cliniques')].find(p => p.slug === slug); if (!item) fail(404, 'Établissement introuvable.'); return json(res, 200, { ...item, ...openingStatus(item) }); }
+      const offers = await hydrateMedicines((await visibleList('medicaments')).filter(m => m.slug === slug && m.quantite > 0));
       if (!offers.length) fail(404, 'Médicament introuvable.');
       return json(res, 200, { designation: offers[0].designation, forme: offers[0].forme, image: offers[0].image, slug, pharmacies: await Promise.all(offers.map(async o => ({ ...await find('pharmacies', o.pharmacie_id), ...openingStatus(o), prix_public: o.prix_public, quantite: o.quantite, currency: o.currency }))) });
     }
@@ -286,6 +296,7 @@ export const server = createServer(async (req, res) => {
       }
       if (method === 'DELETE' && id) {
         if (!await find(kind, id)) fail(404, 'Fiche introuvable.');
+        if (kind === 'pharmacies' && await db.prepare('SELECT id FROM partners WHERE pharmacy_id=?').get(id)) fail(409, 'Cette pharmacie possède un compte. Suspendez-le depuis les inscriptions plutôt que de supprimer sa fiche.');
         if (kind === 'pharmacies' && (await list('medicaments')).some(m => m.pharmacie_id === id)) fail(409, 'Supprimez ou réaffectez les offres de cette pharmacie avant de la supprimer.');
         await db.prepare('DELETE FROM records WHERE kind=? AND id=?').run(kind, id); return json(res, 200, { success: true });
       }

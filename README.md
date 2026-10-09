@@ -85,6 +85,16 @@ Après une première ouverture connectée, les fichiers essentiels de l’applic
 
 Une nouvelle version est signalée avec « Mettre à jour » ; la page ne se recharge qu’après cette action, pour préserver les saisies en cours. L’installation physique dépend du navigateur et de ses critères d’éligibilité.
 
+## Inscription et espace des pharmacies
+
+`/inscription-pharmacie` permet de créer un compte (responsable, email, mot de passe de 12 caractères minimum), de transmettre la fiche et une photo de justificatif professionnel JPG/PNG/WEBP de 4 Mo maximum. La photo publique de l’établissement est optionnelle. Les coordonnées GPS et les horaires sont modifiables ; l’adresse, la ville, le pays et le téléphone sont obligatoires. Les comptes sont stockés dans `partners`, avec des sessions séparées de l’administration (`sp_partner`, cookie HttpOnly, 8 heures). Aucun mot de passe en clair ni clé administrateur n’est transmis au client.
+
+Dans `/admin`, l’onglet « Inscriptions pharmacies » affiche les dossiers et leurs justificatifs privés. Une demande reste invisible dans le catalogue avant approbation. L’administrateur peut approuver, demander des corrections avec un motif, suspendre et réactiver. Une pharmacie suspendue et ses offres sont masquées dans le catalogue, les fiches et l’assistant ; les écritures sont bloquées même si une session existante reste ouverte. La fiche est conservée pour permettre la réactivation. Une pharmacie possédant un compte ne peut pas être supprimée par le formulaire général : utiliser la suspension.
+
+`/espace-pharmacie` permet de se connecter, suivre le statut, corriger et renvoyer un dossier, puis gérer le profil, les horaires, la garde et ses seuls médicaments/prix/stocks/images après validation. Le backend impose l’établissement du compte et refuse les accès aux médicaments d’un autre compte. Les justificatifs sont dans `server/storage/partner-documents` et restent hors du cache PWA ; inclure ce dossier dans les sauvegardes. La migration SQLite → PostgreSQL conserve aussi ces comptes et références, mais ne copie pas leurs sessions.
+
+La validation est manuelle : aucune vérification d’email ni notification automatique n’est simulée. Les statuts se consultent dans l’espace pharmacie avec « Actualiser le statut ». Les limites d’inscription et connexion sont par IP et en mémoire, comme les limites existantes du serveur. En production prévoir une limitation partagée, les sauvegardes et l’hébergement HTTPS du backend. GitHub Pages affiche une notice sans formulaire actif pour éviter des inscriptions fictives. Les liens d’accès sont dans le pied de page et la page « Pour les pharmacies ».
+
 ## Profil administrateur
 
 Le bouton « Mon profil » dans l’en-tête permet de modifier le nom, la photo, le téléphone personnel et l’email de connexion. Le téléphone du profil ne change pas le contact public du site. Pour changer l’email ou le mot de passe, le mot de passe actuel est demandé. Le nouveau mot de passe doit contenir au moins 12 caractères. Son changement déconnecte les autres sessions et conserve la session de cet appareil. Les comptes existants reçoivent les nouveaux champs sans remplacement de leurs identifiants.

@@ -5,6 +5,7 @@ const tables = {
   settings: ['key', 'value'],
   admins: ['id', 'email', 'salt', 'hash', 'nom', 'telephone', 'image'],
   requests: ['id', 'kind', 'data', 'created'],
+  partners: ['id', 'email', 'responsable', 'salt', 'hash', 'status', 'profile', 'document', 'pharmacy_id', 'reason', 'created', 'updated'],
 };
 
 // The source is opened read-only. A failed import rolls back all target data.
@@ -15,13 +16,13 @@ export async function migrateSQLite(sourceFile, target, { checkOnly = false } = 
   let snapshot;
   try {
     source.exec('BEGIN');
-    snapshot = Object.fromEntries(Object.entries(tables).map(([table, columns]) => [table, source.prepare(`SELECT ${columns.join(',')} FROM ${table}${table === 'records' ? ' ORDER BY rowid' : ''}`).all()]));
+    snapshot = Object.fromEntries(Object.entries(tables).map(([table, columns]) => [table, source.prepare('SELECT name FROM sqlite_master WHERE type=? AND name=?').get('table', table) ? source.prepare(`SELECT ${columns.join(',')} FROM ${table}${table === 'records' ? ' ORDER BY rowid' : ''}`).all() : []]));
     source.exec('COMMIT');
   } finally { source.close(); }
   const counts = Object.fromEntries(Object.entries(snapshot).map(([table, rows]) => [table, rows.length]));
   await target.transaction(async () => {
     await target.exec('SELECT pg_advisory_xact_lock(72431002)');
-    for (const table of [...Object.keys(tables), 'sessions']) {
+    for (const table of [...Object.keys(tables), 'sessions', 'partner_sessions']) {
       if (Number((await target.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get()).count)) throw new Error('La base PostgreSQL doit être vide. Aucune donnée existante n’a été remplacée.');
     }
     if (checkOnly) return;

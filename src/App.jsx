@@ -23,9 +23,12 @@ import Politique from './pages/Politique.jsx';
 import Placeholder from './pages/Placeholder.jsx';
 import Admin from './pages/Admin.jsx';
 import Assistant from './pages/Assistant.jsx';
+import Partner from './pages/Partner.jsx';
 
 // Titres des onglets (les fiches détail définissent le leur)
 const TITLES = {
+  '/inscription-pharmacie': 'Inscrire ma pharmacie',
+  '/espace-pharmacie': 'Mon espace pharmacie',
   '/assistant': 'Assistant de recherche',
   '/admin': 'Administration',
   '/': 'Accueil',
@@ -61,6 +64,8 @@ export default function App() {
     <Routes>
       <Route path="/admin" element={import.meta.env.VITE_GITHUB_PAGES === 'true' ? <main style={{ maxWidth: 650, margin: '80px auto', padding: 24 }}><h1>Administration</h1><p>Cette version GitHub est une démonstration. L’administration nécessite un backend hébergé.</p><a href="#/">Retour à l’accueil</a></main> : <Admin />} />
       <Route element={<Layout />}>
+        <Route path="/inscription-pharmacie" element={<Partner />} />
+        <Route path="/espace-pharmacie" element={<Partner />} />
         <Route path="/assistant" element={<Assistant />} />
         <Route path="/" element={<Home />} />
         <Route path="/medicaments" element={<Medicaments />} />

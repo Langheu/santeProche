@@ -25,7 +25,7 @@ try {
   await client.connect();
   const name = `santeproche_test_${Date.now()}`;
   try { await client.query(`CREATE DATABASE ${name}`); } finally { await client.end(); }
-  await run(process.execPath, ['--test', 'server/backend.test.js', 'server/database.test.js'], { ...process.env, TEST_DATABASE_URL: `postgresql://test_admin@127.0.0.1:${port}/${name}` }, true);
+  await run(process.execPath, ['--test', 'server/backend.test.js', 'server/database.test.js', 'server/partners.test.js'], { ...process.env, TEST_DATABASE_URL: `postgresql://test_admin@127.0.0.1:${port}/${name}` }, true);
 } catch (error) { console.error(error.message); process.exitCode = 1; }
 finally {
   if (started) await run(executable('pg_ctl'), ['-D', directory, '-m', 'fast', '-w', 'stop']);

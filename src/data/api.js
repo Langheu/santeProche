@@ -1,6 +1,7 @@
 import { API_URL } from '../config.js';
 
 export async function request(path, options = {}) {
+  if (import.meta.env.VITE_GITHUB_PAGES === 'true') return (await import('./pages-demo.js')).demoRequest(path, options);
   const response = await fetch(`${API_URL}${path}`, { credentials: 'include', ...options, headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers } });
   const result = await response.json().catch(() => null);
   if (!response.ok) throw new Error(result?.error || 'Le serveur est indisponible.');

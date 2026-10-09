@@ -11,6 +11,7 @@
     "start": "node server/index.js",
     "test": "node --test server/*.test.js",
     "build": "vite build",
+    "build:pages": "node scripts/build-pages.js",
     "preview": "vite preview"
   },
   "dependencies": {

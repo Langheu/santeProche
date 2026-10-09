@@ -42,6 +42,10 @@ npm run build
 
 Les tests utilisent une base temporaire distincte des données du projet.
 
+## Version GitHub Pages
+
+`npm run build:pages` prépare `dist-pages` pour https://langheu.github.io/santeProche/. Cette publication utilise une navigation compatible avec GitHub Pages et un catalogue fictif en lecture seule. La recherche classique et les images publiques fonctionnent sans serveur. L’administration, les envois de formulaires et l’analyse IA des photos nécessitent le backend ; la démonstration ne simule pas leur succès. La compilation habituelle `npm run build` conserve la connexion au backend du projet.
+
 ## Profil administrateur
 
 Le bouton « Mon profil » dans l’en-tête permet de modifier le nom, la photo, le téléphone personnel et l’email de connexion. Le téléphone du profil ne change pas le contact public du site. Pour changer l’email ou le mot de passe, le mot de passe actuel est demandé. Le nouveau mot de passe doit contenir au moins 12 caractères. Son changement déconnecte les autres sessions et conserve la session de cet appareil. Les comptes existants reçoivent les nouveaux champs sans remplacement de leurs identifiants.
